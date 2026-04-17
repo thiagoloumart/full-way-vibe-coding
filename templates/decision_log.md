@@ -1,3 +1,13 @@
+---
+artefato: decision_log
+fase: 0.5
+dominio: [any]
+schema_version: 1
+requer:
+  - "Decisões em regras sensíveis (Manual §5.4)"
+  - "Revisões posteriores"
+---
+
 # Decision Log — [Nome do Módulo]
 
 **Referência:** `bmad.md` v<x>

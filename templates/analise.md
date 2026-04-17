@@ -1,3 +1,19 @@
+---
+artefato: analise
+fase: 6
+dominio: [any]
+schema_version: 1
+requer:
+  - "1. Resumo executivo"
+  - "2. Matriz Spec × Plano"
+  - "3. Matriz Spec × Tasks"
+  - "4. Matriz Constituição × Plano"
+  - "7. Regras sensíveis × Clarify (Manual §5.4)"
+  - "8.5 Spec × Decision Log (rastreabilidade estratégica)"
+  - "10. Problemas detectados"
+  - "12. Veredicto final"
+---
+
 # Análise Cruzada — [Nome do Módulo]
 
 **Entradas:** `bmad.md` v<x>, `decision_log.md` v<x>, `constitution.md` v<x>, `spec.md` v<x>, `clarify.md` v<x>, `plan.md` v<x>, `tasks.md` v<x>

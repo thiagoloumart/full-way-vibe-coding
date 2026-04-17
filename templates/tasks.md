@@ -1,3 +1,13 @@
+---
+artefato: tasks
+fase: 5
+dominio: [software]
+schema_version: 1
+requer:
+  - "Matriz de rastreabilidade (FR ↔ Task)"
+  - "Matriz de rastreabilidade (Edge Case ↔ Task/Teste)"
+---
+
 # Tasks — [Nome do Módulo]
 
 **Referência:** `plan.md` v<x>

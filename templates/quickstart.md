@@ -1,3 +1,18 @@
+---
+artefato: quickstart
+fase: 9
+dominio: [software]
+schema_version: 1
+requer:
+  - "1. Pré-requisitos"
+  - "2. Subir localmente"
+  - "3. Caminho feliz"
+  - "4. Caminho de erro"
+  - "5. Caminho de permissão"
+  - "7. Rollback / limpeza"
+  - "8. Quem validou"
+---
+
 # Quickstart — [Nome do Módulo]
 
 **Data:** [YYYY-MM-DD]

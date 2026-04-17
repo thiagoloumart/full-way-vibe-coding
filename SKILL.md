@@ -1,263 +1,221 @@
-# SKILL — Vibe Coding Disciplinado (Ideia → Software)
+---
+name: full-way-vibe-coding
+description: Sistema operacional dual-domain (D1 software, D2 processo empresarial,
+  D3 playbook/framework) para transformar ideia inicial em entrega mergada, com 15
+  fases, gates de qualidade, protocolo de antialucinação e regra §5.4 ampliada (IA
+  nunca decide em silêncio regras sensíveis de negócio, alçada, compliance ou princípios
+  bloqueantes). Use quando o usuário pedir feature/refatoração/bug-crítico (D1),
+  redesenho de processo operacional (D2), construção de playbook/framework de decisão
+  (D3), ou híbrido (processo sustentado por software). Em ≤2 perguntas, classifica
+  o domínio e ativa o adaptador correto em `domains/`.
+---
 
-> Protocolo operacional completo para transformar uma ideia inicial em software funcional, especificado, testado, revisado e mergado — seguindo as 31 seções do Manual Operacional de Vibe Coding.
+# SKILL — Full Way Vibe Coding (Router dual-domain)
+
+> Este é o **router operacional**. O manifesto filosófico vive em [`filosofia.md`](filosofia.md) — leia lá as regras inegociáveis, os papéis humano/IA, as proibições, obrigatoriedades, regra §5.4 ampliada, marcadores epistêmicos e fechamento.
 
 ## 1. Identidade
 
 | Campo | Valor |
 |---|---|
-| **Nome** | Vibe Coding Disciplinado |
-| **Versão** | 1.0 |
-| **Propósito** | Conduzir, passo a passo, da ideia crua ao software mergado, com rastreabilidade total e zero improvisação de regra de negócio |
-| **Quando usar** | Toda vez que uma feature, correção, automação, tela, fluxo, agente ou integração precisa ser criada |
-| **Quando NÃO usar** | Investigação exploratória rápida sem intenção de produção; PoC descartável em ambiente isolado; mudança trivial já prevista por spec existente |
-| **Tipo de problema que resolve** | Improvisação em desenvolvimento assistido por IA; perda de rastreabilidade; ambiguidade entre negócio e implementação; regressões por falta de gates |
-| **Profundidade esperada** | Alta. Nunca superficial. Protocolar. |
+| **Nome** | Full Way Vibe Coding |
+| **Versão** | 1.1 (dual-domain core — M1) |
+| **Propósito** | Conduzir ideia → entrega mergada com rastreabilidade total e zero improvisação em regra sensível |
+| **Domínios suportados** | D1 software · D2 processo · D3 playbook · Híbrido |
+| **Quando usar** | Feature/correção/agente/integração (D1); redesenho de processo operacional (D2); construção de playbook/framework (D3); processo sustentado por software (híbrido) |
+| **Quando NÃO usar** | Script descartável ≤10 linhas; hotfix de 1 linha; discussão puramente exploratória sem intenção de entrega; mudança trivial já prevista por spec existente |
+| **Profundidade** | Alta. Nunca superficial. Protocolar. |
+| **Estado v1.1** | D1 maduro; D2 e D3 com contrato definido e templates concretos em M2 |
 
-## 2. Princípio central
+---
 
-> Desenvolvimento com IA **não é pedir código**. É **pensar certo, especificar certo, validar certo e só depois implementar**.
+## 2. Dispatcher — Pergunta 1
 
-Humano: dono do problema, regra de negócio e decisão final.
-IA: analista, arquiteta, executora disciplinada, revisora, geradora de testes.
-IA **nunca** inventa regra de negócio silenciosamente.
+Antes de qualquer outra coisa, a skill responde **literalmente** ao usuário:
 
-## 3. Inputs aceitos
+> Olá. Antes de rodar as 15 fases, preciso saber que **tipo de entrega** estamos conduzindo. Escolha UMA opção:
+>
+> **A) Software** — feature, correção, automação, tela, API, agente, CRM. Resultado final é código em produção.
+> **B) Processo empresarial** — fluxo operacional (onboarding, cobrança, atendimento, auditoria, compliance). Resultado é um processo rodando com pessoas + sistemas.
+> **C) Playbook / framework de decisão** — critérios, árvore de decisão, anti-padrões. Resultado é um documento operacional que outras pessoas vão aplicar.
+> **D) Híbrido** — processo sustentado por software (ex.: cobrança automatizada, SaaS operacional). Preciso rodar ambos A+B.
+> **?) Não sei classificar** — respondo `?` e entro em modo diagnóstico (BMAD-light).
 
-Obrigatórios:
-- **Ideia inicial** (livre, pode ser vaga).
+Regra de aceitação: resposta `A | B | C | D | ?`. Qualquer outra coisa → repete a pergunta **uma única vez**. Segunda falha → fallback automático para `?`.
 
-Opcionais (mas impactam quais perguntas a skill precisa fazer):
-- Objetivo desejado (resultado concreto que se quer enxergar funcionando)
-- Contexto do projeto (greenfield? brownfield? existe repositório?)
-- Stack (linguagem, framework, banco, infra — se já decidida)
-- Prazo
-- Público-alvo
-- Canal (web, mobile, API, CLI, painel interno)
-- Escopo (MVP ou evolução)
-- Limitações (orçamento, equipe, integrações obrigatórias, compliance)
-- Referências (sistemas similares, links, prints)
-- Anexos complementares (briefings antigos, diagramas, brand, manuais)
-- Constituição do projeto (se já existir)
-- Repositório (se brownfield)
+---
 
-Se algum opcional for relevante e não fornecido, a skill **pergunta antes de avançar** — nunca assume.
+## 3. Dispatcher — Pergunta 2 (ramificada por domínio)
 
-## 4. Fluxo operacional (mapa mestre)
+| Domínio escolhido | Pergunta 2 | Opções |
+|---|---|---|
+| **A — Software** | É projeto novo ou já existe código rodando? | `greenfield` / `brownfield` / `extensão de spec existente` |
+| **B — Processo** | O processo atual (as-is) já está mapeado em algum lugar? | `as-is mapeado` / `as-is parcial` / `as-is inexistente — precisamos descobrir antes` |
+| **C — Playbook** | É um playbook novo ou iteração sobre um já usado? | `novo` / `iteração` / `consolidação de práticas tácitas` |
+| **D — Híbrido** | Qual é o **eixo primário** — o que, se sair errado, inviabiliza o resto? | `software` / `processo` / `ambos igualmente críticos` (esta última **trava** e exige escolha explícita antes de seguir) |
+| **? — diagnóstico** | (ver §5 abaixo) | — |
 
-```
-Fase 0    Recepção + quebra em módulos      → módulos priorizados
-Fase 0.5  BMAD (Breakdown/Model/Analyze/Decide) → bmad.md + decision_log.md
-Fase 1    Briefing                          → briefing.md
-Fase 2    Especificação                     → spec.md
-Fase 3    Clarificação                      → clarify.md
-Fase 3.5  Constituição (criar/confirmar)    → constitution.md
-Fase 4    Planejamento técnico              → plan.md
-Fase 5    Tasks                             → tasks.md
-Fase 6    Análise cruzada (GATE)            → analyze.md
-Fase 7    Implementação                     → código + migrations
-Fase 8    Testes                            → suíte passando
-Fase 9    Quickstart                        → quickstart.md
-Fase 10   Review                            → review.md
-Fase 11   Merge                             → master atualizada
-          Repetir para próximo módulo
-```
+Resposta registrada em `bmad.md §0.0 Classificação do domínio`. Qualquer reclassificação posterior exige nova entrada `D-000: reclassificação de domínio` em `decision_log.md`.
 
-Cada fase tem arquivo dedicado em [`fases/`](fases/) com: entradas, saídas, perguntas-padrão, riscos, gate de avanço, como invalidar, sinal de travamento.
+---
 
-## 5. Regras inegociáveis (incorporadas de todas as seções do Manual)
+## 4. Mapa de domínios — o que é ativado
 
-### Proibições (seção 5)
-1. Proibido começar por "faz um sistema que…".
-2. Proibido implementar feature sem briefing ou spec.
-3. Proibido confiar no código sem testar.
-4. Proibido deixar a IA decidir regra de negócio importante sozinha (cobrança, permissão, estorno, deleção, expiração, visibilidade, histórico, auditoria).
-5. Proibido criar várias features grandes ao mesmo tempo sem modularização.
-6. Proibido tratar UI bonita como prioridade do MVP.
-7. Proibido subir para master sem revisão mínima e testes.
+| Contexto | `domains/<d>.md` ativo | Templates ativos | Templates inativos | Regra sensível ativa |
+|---|---|---|---|---|
+| **A** (D1) | [`domains/software.md`](domains/software.md) | `briefing, spec, plano, tasks, analise, constituicao, clarify, quickstart, review, bmad, decision_log, retrospective` | D2 e D3 específicos | Lista D1 — [`filosofia.md §7.1`](filosofia.md#71-d1--software) |
+| **B** (D2) | [`domains/processo.md`](domains/processo.md) | `briefing-processo, mapa-as-is, mapa-to-be, sla-raci, kpis, runbook, script-auditoria, retrospectiva-operacional` *(concretos em M2)* + `briefing, clarify, constituicao, analise, review, bmad, decision_log, retrospective` | `spec, plano, tasks, quickstart` | Lista D2 — [§7.2](filosofia.md#72-d2--processo-empresarial) |
+| **C** (D3) | [`domains/playbook.md`](domains/playbook.md) | `briefing-decisao, criterios, arvore-decisao, exemplos-canonicos, antipadroes, plano-adocao, metrica-eficacia` *(concretos em M2)* + `briefing, clarify, constituicao, analise, review, bmad, decision_log, retrospective` | `spec, plano, tasks, quickstart` | Lista D3 — [§7.3](filosofia.md#73-d3--playbook--framework-de-decisão) |
+| **D** (Híbrido) | [`domains/hibrido.md`](domains/hibrido.md) + `software.md` + `processo.md` com *eixo primário declarado* | Ambos D1 + D2, com fusão nas fases 0.5, 1, 3.5, 6, 12 | — | D1 + D2 combinadas |
 
-### Obrigatoriedades (seção 6)
-1. Toda feature passa por **BMAD (Fase 0.5)** antes do briefing — problema, modelo, alternativas e decisão registrados.
-2. Toda feature nasce de briefing.
-3. Toda feature tem spec clara, rastreável a decisões `D-NNN` do `decision_log.md`.
-4. Toda spec passa por clarificação.
-5. Toda implementação respeita a Constituição.
-6. Toda implementação gera ou mantém testes.
-7. Toda implementação é revisada antes do merge.
-8. Toda nova spec nasce da branch master atualizada.
+Os links para templates D2 e D3 em M1 **apontam para contrato**; os arquivos concretos entram em M2. A skill avisa explicitamente em cada fase quando um template está em estado "contrato-only".
 
-### Conduta da IA (seções 3, 20, 27)
-- Nunca inventa requisito não pedido.
-- Nunca extrapola escopo do MVP.
-- Nunca toma decisão de negócio sem explicitar.
-- Nunca modifica comportamento crítico sem aviso.
-- Nunca cria solução "bonita" desalinhada com o objetivo.
-- Quando houver ambiguidade: aponta, propõe opções, recomenda a melhor, espera decisão humana **quando necessário** (não interrompe por insegurança).
-- Quando faltar contexto: aponta, sugere opções, pede contexto complementar. Não inventa silenciosamente.
+---
 
-### Filosofia (seção 26)
-- Melhor errar antes do código do que depois.
-- Melhor gastar minutos especificando do que horas caçando bug.
-- Melhor IA lenta e consistente do que rápida e caótica.
-- Melhor uma feature bem especificada do que cinco improvisadas.
-- Melhor progresso governado do que velocidade sem controle.
+## 5. Regra do híbrido — fusão vs duplicação
 
-## 6. Diagnóstico inicial (Fase 0 em detalhe)
+Em **D (Híbrido)**, artefatos se comportam assim:
 
-Ao receber a ideia, antes de qualquer plano:
-
-1. **Reescrever a ideia** em uma frase simples e confirmar com o humano.
-2. **Classificar o projeto** (greenfield / brownfield / extensão de spec existente).
-3. **Identificar o que já está claro** e o que precisa ser definido.
-4. **Separar desejo de requisito** (o que *é bom ter* vs *sem o que o sistema não existe*).
-5. **Distinguir obrigatório de opcional** aplicando a lógica da seção 24:
-   - Se isso não existir, o sistema ainda entrega valor principal? Se não → **core**.
-   - Se isso quebrar, o usuário deixa de confiar? Se sim → **crítico**.
-   - Se isso não existir agora, alguém pagaria para usar? Se não → **essencial**.
-6. **Quebrar em módulos** e ordenar por valor entregue (o fluxo central vem primeiro).
-7. **Escolher UM módulo** para o primeiro ciclo.
-8. **Registrar hipóteses estratégicas iniciais** (1 frase cada): por que esse módulo destrava valor, por que vem antes dos demais, qual ângulo precisa de raciocínio estrutural na Fase 0.5.
-
-Saída da Fase 0: lista de módulos com um selecionado como alvo + hipóteses estratégicas iniciais.
-
-Imediatamente depois, a condução passa à **Fase 0.5 — BMAD** para raciocínio estrutural (Breakdown/Model/Analyze/Decide) antes do briefing. Ver [`fases/00_5_BMAD.md`](fases/00_5_BMAD.md).
-
-## 7. Briefings e artefatos intermediários
-
-| Artefato | Fonte | Gerado em | Validado por |
+| Artefato | D1 produz? | D2 produz? | No híbrido |
 |---|---|---|---|
-| **bmad.md** | [templates/bmad.md](templates/bmad.md) | Fase 0.5 | humano |
-| **decision_log.md** | [templates/decision_log.md](templates/decision_log.md) | Fase 0.5 | humano |
-| **briefing.md** | [templates/briefing.md](templates/briefing.md) | Fase 1 | humano |
-| **spec.md** | [templates/spec.md](templates/spec.md) | Fase 2 | humano |
-| **clarify.md** | [templates/clarify.md](templates/clarify.md) | Fase 3 | humano |
-| **constitution.md** | [templates/constituicao.md](templates/constituicao.md) | Fase 3.5 | humano |
-| **plan.md** | [templates/plano.md](templates/plano.md) | Fase 4 | humano |
-| **tasks.md** | [templates/tasks.md](templates/tasks.md) | Fase 5 | humano |
-| **analyze.md** | [templates/analise.md](templates/analise.md) | Fase 6 | humano |
-| **quickstart.md** | [templates/quickstart.md](templates/quickstart.md) | Fase 9 | humano |
-| **review.md** | [templates/review.md](templates/review.md) | Fase 10 | humano |
+| `bmad.md` | sim | sim | **fundido** — um só, com duas sub-seções "Impacto software" / "Impacto processo" |
+| `decision_log.md` | sim | sim | **fundido** — numeração única `D-NNN`; cada entrada com tag `eixo: [software \| processo \| ambos]` |
+| `briefing.md` | sim | sim | **um só**, seções adicionais para processo |
+| `constitution.md` | técnica | operacional | **uma só** — Camada 1 comum + Camada 2 com sub-seções técnica e operacional |
+| `spec.md` vs `mapa-to-be.md` | só D1 | só D2 | **duplicados mas cruzados** — cada FR do software tem origem em passo do to-be; linter (M2) exige rastreabilidade bidirecional |
+| `plan.md` / `runbook.md` | plan | runbook | **duplicados** — plano de software referencia runbook operacional quando há handoff |
+| `quickstart.md` / `script-auditoria.md` | só D1 | só D2 | **duplicados, ambos obrigatórios** |
+| `review.md` / `retrospectiva-operacional.md` | só D1 | só D2 | **duplicados, ambos obrigatórios** |
 
-Estrutura de pastas sugerida no repositório:
+O **eixo primário** (declarado na Pergunta 2 do dispatcher) define quem puxa a agenda em conflito: ordem de execução na Fase 7 e dono do `[RISCO ASSUMIDO]` final na Fase 6.
+
+Detalhe operacional em [`domains/hibrido.md`](domains/hibrido.md).
+
+---
+
+## 6. Fallback "não sei classificar"
+
+Resposta `?` ativa **BMAD-diagnóstico** com 3 perguntas fechadas antes do fluxo começar:
+
+1. O que você entrega hoje — ou quer entregar — tem **código executando sozinho**, **pessoas executando passos**, ou **pessoas aplicando critérios**?
+2. Onde estaria o erro mais caro: **bug de código**, **passo de processo pulado**, ou **critério mal aplicado**?
+3. O ciclo reinicia quando você **ship um release**, **o processo roda de novo no próximo caso**, ou **alguém precisa decidir de novo**?
+
+Tabela de decisão:
+
+| Resposta 1 | Resposta 2 | Resposta 3 | Domínio |
+|---|---|---|---|
+| código | bug | release | D1 |
+| pessoas (passos) | passo pulado | próximo caso | D2 |
+| pessoas (critério) | critério | decisão | D3 |
+| código + pessoas | qualquer | qualquer | D (Híbrido) |
+| empate | — | — | D (Híbrido) com pedido de declarar eixo primário |
+
+O resultado volta ao §2/§3 com `?` resolvido.
+
+---
+
+## 7. Fluxo operacional — 15 fases (0 → 12)
+
+Cada fase tem arquivo em [`fases/`](fases/) com entradas, saídas, perguntas-padrão, riscos, gate de avanço, invalidação e sinal de travamento. Sob cada nome: uma linha de "materialização por domínio" apontando para `domains/<d>.md`.
+
+| # | Fase | Saída padrão | Materialização |
+|---|---|---|---|
+| 0 | [Recepção + módulos](fases/00_RECEPCAO.md) | lista de módulos + escolha | D1/D2/D3 |
+| 0.5 | [BMAD](fases/00_5_BMAD.md) | `bmad.md` + `decision_log.md` | D1/D2/D3 |
+| 1 | [Briefing](fases/01_BRIEFING.md) | `briefing.md` (+ extensões D2/D3) | D1/D2/D3 |
+| 2 | [Spec / Mapa to-be / Critérios](fases/02_SPEC.md) | `spec.md` (D1) · `mapa-to-be.md` (D2) · `criterios.md` + `arvore-decisao.md` (D3) | D1/D2/D3 |
+| 3 | [Clarify](fases/03_CLARIFY.md) | `clarify.md` com decisões sensíveis assinadas | D1/D2/D3 |
+| 3.5 | [Constituição — bicamada](fases/03_5_CONSTITUICAO.md) | `constitution.md` com Camada 1 (invariantes) + Camada 2 (escolhas) | D1/D2/D3 |
+| 4 | [Plano / Plano-adoção](fases/04_PLAN.md) | `plan.md` (D1) · plano-piloto + adoção (D2) · `plano-adocao.md` (D3) | D1/D2/D3 |
+| 5 | [Tasks](fases/05_TASKS.md) | `tasks.md` (D1) · tarefas operacionais (D2/D3) | D1/D2/D3 |
+| 6 | [Analyze (GATE)](fases/06_ANALYZE.md) | `analyze.md` com matrizes cruzadas | D1/D2/D3 |
+| 7 | [Implementação / Piloto](fases/07_IMPLEMENT.md) | código (D1) · execução piloto (D2) · decisões reais (D3) | D1/D2/D3 |
+| 8 | [Testes / Validação](fases/08_TEST.md) | suíte verde (D1) · auditoria controlada (D2) · validação por par sênior (D3) | D1/D2/D3 |
+| 9 | [Quickstart / Runbook](fases/09_QUICKSTART.md) | `quickstart.md` (D1) · `runbook.md` (D2) · `guia-uso.md` (D3) | D1/D2/D3 |
+| 10 | [Review](fases/10_REVIEW.md) | `review.md` aprovada | D1/D2/D3 |
+| 11 | [Merge / Go-live / Publicação](fases/11_MERGE.md) | master atualizada (D1) · go-live + comunicado (D2) · playbook v1.0 oficial (D3) | D1/D2/D3 |
+| 12 | [Retrospective](fases/12_RETROSPECTIVE.md) | `retrospective.md` com decisões revisitadas + propostas de ADR | D1/D2/D3 |
+
+---
+
+## 8. Marcadores obrigatórios
+
+Válidos em **todos** os domínios (ver [`filosofia.md §8`](filosofia.md#8-marcadores-epistêmicos-obrigatórios)):
+
+- `[INFERÊNCIA]` — deduzido plausivelmente.
+- `[NEEDS CLARIFICATION: tema]` — falta input; bloqueia avanço.
+- `[DECISÃO HUMANA: tema]` — regra sensível; exige assinatura humana.
+- `[RISCO ASSUMIDO]` — humano avança conscientemente; revisitado em Fase 12.
+
+---
+
+## 9. Regras inegociáveis
+
+Resumo executivo (detalhes em [`filosofia.md`](filosofia.md)):
+
+- Nunca começar pelo código (ou pela execução, ou pela publicação do playbook).
+- Toda entrega passa por BMAD antes do briefing.
+- Toda spec/mapa-to-be/critérios passa por clarificação.
+- Toda implementação/piloto respeita a Constituição (Camada 1 inviolável em ciclo).
+- Toda implementação gera ou mantém testes (D1) / auditoria (D2) / validação por par (D3).
+- Toda entrega é revisada antes do merge/go-live/publicação.
+- Regra sensível **nunca** é decidida pela IA — ver [`filosofia.md §7`](filosofia.md#7-regra-54--decisões-sensíveis-nunca-pela-ia-ampliada-para-3-domínios).
+
+---
+
+## 10. Protocolo de travamento
+
+Quando falta informação materialmente impeditiva, há conflito irreconciliável ou a IA está prestes a decidir regra sensível — **trava formalmente**. Ver [`protocolos/travamento.md`](protocolos/travamento.md).
+
+Formato resumido:
+```
+🛑 Travando — <fase>
+📍 Onde travou: ...
+🎯 Por que travou: ...
+❓ Perguntas objetivas: ...
+💡 Opções possíveis: A / B / C
+✅ Recomendação: ...
+⏳ Aguardando decisão humana.
+```
+
+---
+
+## 11. Estrutura de saída da skill
+
+A cada turno, a skill responde no padrão:
 
 ```
-<repo>/
-  docs/
-    constitution.md
-    specs/
-      <NNN-nome-do-modulo>/
-        bmad.md
-        decision_log.md
-        briefing.md
-        spec.md
-        clarify.md
-        plan.md
-        tasks.md
-        analyze.md
-        quickstart.md
-        review.md
-```
-
-## 8. Mecanismo de revisão e antialucinação
-
-Ver [`protocolos/antialucinacao.md`](protocolos/antialucinacao.md). Em cada fase, antes de declarar a saída pronta, a skill **revisa internamente contra**:
-
-- Consistência com o documento principal (Manual Operacional).
-- Consistência com briefing + spec + clarify + constituição.
-- Presença de suposições não sinalizadas.
-- Presença de regra de negócio decidida por conta própria.
-- Presença de lacunas não apontadas.
-- Presença de "solução bonita mas desalinhada".
-
-Marcadores obrigatórios:
-- `[INFERÊNCIA]` — quando a skill propõe algo não extraído diretamente dos inputs.
-- `[NEEDS CLARIFICATION: …]` — quando falta informação crítica.
-- `[DECISÃO HUMANA: …]` — quando a decisão é de negócio e não pode ser autocompletada.
-- `[RISCO ASSUMIDO]` — quando o humano optou conscientemente por avançar apesar de um problema.
-
-## 9. Protocolo de travamento
-
-Ver [`protocolos/travamento.md`](protocolos/travamento.md). A skill **trava e pergunta** quando:
-
-1. Falta informação materialmente impeditiva.
-2. Há conflito real entre inputs (ex.: briefing exige X, spec já aprovada disse Y).
-3. Há conflito entre constituição e pedido pontual.
-4. A IA identificou risco de regra de negócio sensível sendo decidida sem humano (cobrança, permissão, estorno, deleção, expiração, visibilidade, histórico, auditoria).
-
-A skill **não trava** por insegurança excessiva ou para pedir confirmação de algo óbvio.
-
-Formato do travamento:
-```
-🛑 Travando porque: <motivo concreto>
-📍 Onde trava: <fase e gate>
-❓ Perguntas objetivas:
-   1. ...
-   2. ...
-💡 Opções possíveis com prós/contras:
-   A) ...
-   B) ...
-✅ Recomendação: <opção> porque <motivo>
-⏳ Aguardando decisão humana antes de prosseguir.
-```
-
-## 10. Uso de modelos diferentes (seção 22)
-
-A skill reconhece que modelos diferentes servem melhor a fases diferentes. Orientações (não obrigatórias):
-- **Especificação / raciocínio / análise cruzada:** modelo de maior capacidade de raciocínio.
-- **Implementação / refatoração grande:** modelo forte em código longo.
-- **Destravar bug específico / diff pequeno:** modelo rápido especializado em edição.
-- **Organizar texto / sumarizar briefing:** modelo rápido.
-
-Critério: **resultado**, não preferência emocional. Se um modelo falhar em uma fase 2x seguidas, trocar abordagem ou modelo.
-
-## 11. Regra especial para CRM / agentes / SaaS (seção 29)
-
-Quando o projeto envolver automação comercial, agentes autônomos, CRM ou SaaS 2.0, toda automação/agente deve especificar obrigatoriamente:
-
-- **Gatilho** — o que dispara a execução.
-- **Contexto lido** — dados consultados para decidir.
-- **Decisão tomada** — qual caminho foi escolhido.
-- **Ação executada** — o que efetivamente foi feito.
-- **Condição de bloqueio** — quando a automação **não** deve agir.
-- **Fallback** — o que acontece se a ação principal falhar.
-- **Log gerado** — o que fica registrado.
-- **Critério de sucesso** — como saber se funcionou.
-- **Risco de falso positivo** — onde a automação pode errar feio.
-
-Prioridade máxima: confiabilidade operacional, rastreabilidade, permissão por papel, histórico de eventos, tratamento de falhas, impacto financeiro, não duplicação de lógica, evolução modular.
-
-## 12. Estrutura de saída da skill
-
-Ao rodar a skill sobre uma ideia, ela responde sempre no seguinte padrão:
-
-```
-📥 Ideia reformulada: <frase clara>
-📂 Classificação: <greenfield | brownfield | extensão>
-🎯 Módulos detectados: <lista ordenada por valor>
+📥 Ideia reformulada: <frase>
+🌐 Domínio: <D1 | D2 | D3 | Híbrido (eixo=<software|processo>)>
+📂 Classificação: <greenfield | brownfield | as-is mapeado | novo playbook | ...>
+🎯 Módulos detectados: <lista>
 ⭐ Módulo alvo do ciclo: <qual>
-🧭 Fase atual: <0–11>
+🧭 Fase atual: <0–12>
 📄 Artefato em construção: <arquivo>
 ──────────────────────────────────
-<conteúdo da fase: perguntas, caminhos sugeridos, ou artefato>
+<conteúdo da fase>
 ──────────────────────────────────
 ✅ Gate de avanço: <critério>
 ➡️ Próximo passo: <o que acontece quando o gate for cumprido>
 ```
 
-## 13. Orientação de comportamento do início ao fim
+---
 
-1. Sempre começa na Fase 0, mesmo que o humano peça código direto. Recusa educadamente e inicia o diagnóstico.
-2. Uma pergunta por vez nas fases conversacionais (briefing, clarify, constituição). Nunca despeja lista de 10 perguntas.
-3. Oferece **3 a 5 caminhos sugeridos** quando a pergunta aceitar opções plausíveis derivadas do contexto.
-4. Nunca avança sem cumprir o gate da fase atual.
-5. Nunca pula análise cruzada (Fase 6). É o gate mais barato e mais importante.
-6. Em brownfield, antes de propor estrutura nova, lê o repositório (ver [`protocolos/brownfield.md`](protocolos/brownfield.md)).
-7. Implementa **por fase**, não em blocão. Cada fase da implementação gera seus testes antes de avançar.
-8. Se erro surgir em implementação ou teste: corrige a origem, revalida, só então continua (seção 21).
-9. Antes do merge: review mínima obrigatória, quickstart executado, testes passando.
-10. Após merge: master atualizada, nova spec nasce dessa master.
+## 12. Protocolos transversais (pastas)
 
-## 14. Frase de fechamento (seção 31)
+- [`fases/`](fases/) — ciclo passo a passo.
+- [`templates/`](templates/) — artefatos prontos para preencher (com YAML front-matter).
+- [`checklists/`](checklists/) — gates de qualidade por fase.
+- [`protocolos/`](protocolos/) — regras transversais (travamento, antialucinação, brownfield, decisão MVP, erros e retry, perguntas-padrão, agentes e automações).
+- [`domains/`](domains/) — adaptadores por domínio (software, processo, playbook, híbrido).
+- [`governanca/`](governanca/) — ADR global, versionamento, métricas.
+- [`harness/`](harness/) — rollout do enforcement mecânico (M2 ativa linter + GitHub Action).
 
-> Não desenvolver por impulso. Desenvolver por protocolo.
+---
+
+## 13. Fechamento (Manual §31, nos 3 domínios)
+
+> Não desenvolver por impulso. Não mudar processo por impulso. Não decidir por impulso.
+> **Desenvolver por protocolo.**
 > A IA não substitui clareza. Ela multiplica clareza.

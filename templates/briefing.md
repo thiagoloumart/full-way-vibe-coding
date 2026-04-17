@@ -1,3 +1,21 @@
+---
+artefato: briefing
+fase: 1
+dominio: [any]
+schema_version: 1
+requer:
+  - "1. Visão Geral da Solução"
+  - "2. O Problema"
+  - "3. Público-Alvo"
+  - "4. Modelo de Precificação e Negócio"
+  - "5. Perfis de Acesso"
+  - "6. Canais / Superfícies"
+  - "7. Módulos e Casos de Uso"
+  - "8. Fluxo Principal (alto nível)"
+  - "9. Restrições e Não-objetivos"
+  - "10. Itens ainda em aberto"
+---
+
 # Briefing de Software: [Nome do Sistema ou Módulo]
 
 **Data:** [YYYY-MM-DD]

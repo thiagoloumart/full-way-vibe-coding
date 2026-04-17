@@ -1,3 +1,20 @@
+---
+artefato: plano
+fase: 4
+dominio: [software]
+schema_version: 1
+requer:
+  - "1. Escopo do plano"
+  - "2. Pré-requisitos"
+  - "3. Fases de implementação"
+  - "4. Modelo de dados completo"
+  - "5. Integrações externas (consolidado)"
+  - "6. Decisões técnicas"
+  - "7. Riscos técnicos e mitigações"
+  - "8. Observabilidade planejada"
+  - "9. Plano de rollback"
+---
+
 # Plano Técnico — [Nome do Módulo]
 
 **Referências:** `spec.md` v<x>, `clarify.md` v<x>, `constitution.md` v<x>

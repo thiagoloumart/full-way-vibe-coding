@@ -1,0 +1,59 @@
+.
+├── 00_ANALISE_ESTRATEGICA.md
+├── README.md
+├── SKILL.md
+├── checklists
+│   ├── mvp.md
+│   ├── pre-implementacao.md
+│   ├── pre-merge.md
+│   ├── qualidade-bmad.md
+│   ├── qualidade-briefing.md
+│   ├── qualidade-plano.md
+│   └── qualidade-spec.md
+├── domains
+├── examples
+│   ├── canonical-processo
+│   └── canonical-software
+├── fases
+│   ├── 00_5_BMAD.md
+│   ├── 00_RECEPCAO.md
+│   ├── 01_BRIEFING.md
+│   ├── 02_SPEC.md
+│   ├── 03_5_CONSTITUICAO.md
+│   ├── 03_CLARIFY.md
+│   ├── 04_PLAN.md
+│   ├── 05_TASKS.md
+│   ├── 06_ANALYZE.md
+│   ├── 07_IMPLEMENT.md
+│   ├── 08_TEST.md
+│   ├── 09_QUICKSTART.md
+│   ├── 10_REVIEW.md
+│   └── 11_MERGE.md
+├── governanca
+├── harness
+│   ├── _audit
+│   │   └── before.tree
+│   ├── schemas
+│   └── scripts
+├── integrations
+├── protocolos
+│   ├── antialucinacao.md
+│   ├── brownfield.md
+│   ├── decisao-mvp.md
+│   ├── erros-e-retry.md
+│   ├── perguntas-padrao.md
+│   └── travamento.md
+└── templates
+    ├── analise.md
+    ├── bmad.md
+    ├── briefing.md
+    ├── clarify.md
+    ├── constituicao.md
+    ├── decision_log.md
+    ├── plano.md
+    ├── quickstart.md
+    ├── review.md
+    ├── spec.md
+    └── tasks.md
+
+15 directories, 42 files

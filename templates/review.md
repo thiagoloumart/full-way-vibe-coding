@@ -1,3 +1,17 @@
+---
+artefato: review
+fase: 10
+dominio: [any]
+schema_version: 1
+requer:
+  - "1. Escopo do diff"
+  - "3. Verificações mínimas (Manual §17)"
+  - "4. Aderência à constituição"
+  - "5. Sinal de regras de negócio sensíveis (Manual §5.4)"
+  - "9. Resultado de testes"
+  - "10. Veredicto"
+---
+
 # Review — [Nome do Módulo]
 
 **Branch:** `NNN-nome-do-modulo`

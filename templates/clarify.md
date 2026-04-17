@@ -1,3 +1,12 @@
+---
+artefato: clarify
+fase: 3
+dominio: [any]
+schema_version: 1
+requer:
+  - "Decisões sobre regras sensíveis (Manual §5.4)"
+---
+
 # Clarificação — [Nome do Módulo]
 
 **Referência:** `spec.md` v<x>

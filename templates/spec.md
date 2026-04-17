@@ -1,3 +1,15 @@
+---
+artefato: spec
+fase: 2
+dominio: [any]
+schema_version: 1
+requer:
+  - "User Scenarios & Testing *(mandatory)*"
+  - "Requirements *(mandatory)*"
+  - "Success Criteria *(mandatory)*"
+  - "Out of Scope"
+---
+
 # Feature Specification: [NOME DO MÓDULO/FEATURE]
 
 **Feature Branch:** `[NNN-nome-do-modulo]`

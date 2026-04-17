@@ -91,6 +91,11 @@ O documento principal **não especifica**:
 | Modelo concreto para cada etapa do ciclo | Cada fase tem um arquivo dedicado em `fases/` com: entradas, saídas, perguntas-padrão, riscos, gate de avanço, como invalidar, sinal de travamento | Seção 4.4 do `promptraiz.md` exige isso |
 | Como registrar a trilha de auditoria | Sugerir estrutura de pastas `docs/specs/<feature>/` com bmad.md, decision_log.md, briefing.md, spec.md, clarify.md, plan.md, tasks.md, analyze.md, quickstart.md, review.md | Seção 18 (git/merge) implica, mas não nomeia a estrutura |
 | Como garantir **raciocínio estrutural pré-briefing** | Adicionar **Fase 0.5 BMAD** (Breakdown/Model/Analyze/Decide) entre Recepção e Briefing, com templates próprios (`bmad.md`, `decision_log.md`) e checklist de qualidade | O Manual trata de decomposição, análise de alternativas e decisão apenas implicitamente, misturados em fases posteriores; Fase 0.5 consolida esse raciocínio num único ponto antes da spec |
+| Como suportar **outros domínios além de software** (D2 processo, D3 playbook) | Adicionar **camada de adaptadores** em `domains/` (software, processo, playbook, hibrido), mantendo a numeração das fases; cada domínio materializa fase-a-fase com artefatos próprios (D2: mapa-as-is, mapa-to-be, SLAs, RACI, KPIs, runbook, script-auditoria; D3: critérios, árvore, anti-padrões, plano-adoção, métrica-eficácia) | O Manual §§ 3–5 é explicitamente agnóstico de domínio ("A IA deve agir como analista/arquiteta/executora"); a Fase 7 "implementar" e a Fase 8 "testar" são traduzidas como "executar piloto"/"validar operacionalmente" em D2 e "decisões reais"/"validação por par sênior" em D3. O que muda é o artefato, não o método. |
+| Como **capturar aprendizado pós-merge** | Adicionar **Fase 12 Retrospective** com template próprio (`retrospective.md`), decisões revisitadas, propostas de ADR global | O Manual termina em Fase 11 (Merge) sem loop formal de aprendizado; Fase 12 fecha o ciclo e alimenta decisões futuras (`decision_log.md` fica vivo entre ciclos) |
+| Como **separar invariantes de escolhas na Constituição** | Reescrever Fase 3.5 em **duas camadas** com marcadores `<!-- CAMADA_1/2_BEGIN/END -->` no template; Camada 1 = invariantes (ADR major); Camada 2 = escolhas mutáveis (ADR minor). ADRs globais em `governanca/adr-global.md` | Manual §7 trata a constituição como um único bloco; na prática, mistura-se arquitetura (inviolável) com stack (mutável). A bicamada permite que stack mude sem riscar princípios |
+| Como **ampliar Regra §5.4 para outros domínios** | `filosofia.md §7` traz 3 listas canônicas por domínio (D1 software, D2 processo, D3 playbook) | Manual §5.4 é software-cêntrico (cobrança, permissão, estorno…); em D2 e D3, "sensível" significa alçada, compliance, princípio bloqueante — mesmo espírito, linguagem diferente |
+| Como **enforcer checklists e gates mecanicamente** | Documentar plano em `harness/README.md` e `harness/rollout.md`; linter Python + schemas YAML + GitHub Action entram em M2 | Gates em markdown puro dependem de disciplina humana; o harness adiciona segurança sem sacrificar legibilidade |
 
 Inferências explicitamente sinalizadas com `[INFERÊNCIA]` nos artefatos.
 
@@ -209,9 +214,23 @@ Inferências explicitamente sinalizadas com `[INFERÊNCIA]` nos artefatos.
                            │
                            ▼
     ┌─────────────────────────────────────────────────┐
-    │ FASE 11 — MERGE                                  │
+    │ FASE 11 — MERGE / GO-LIVE / PUBLICAÇÃO           │
     │ Commit documental → commit implementação → merge│
-    │ Gate: master atualizada                          │
+    │ (D1: merge; D2: go-live + comunicação;           │
+    │  D3: publicação oficial v1.0)                    │
+    │ Gate: master atualizada / processo rodando /     │
+    │       playbook publicado                         │
+    └─────────────────────────────────────────────────┘
+                           │
+                           ▼
+    ┌─────────────────────────────────────────────────┐
+    │ FASE 12 — RETROSPECTIVE                          │
+    │ Revisita decisões (D-NNN) com veredicto          │
+    │ KPI previsto vs observado                        │
+    │ Propostas de ADR global → governanca/            │
+    │ Propostas de update da Constituição              │
+    │ Gate: cada D-NNN com veredicto + aprendizados    │
+    │       comunicados ao time                        │
     └─────────────────────────────────────────────────┘
                            │
                            ▼

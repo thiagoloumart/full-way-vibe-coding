@@ -1,3 +1,16 @@
+---
+artefato: bmad
+fase: 0.5
+dominio: [any]
+schema_version: 1
+requer:
+  - "1. Breakdown — decomposição do problema"
+  - "2. Model — modelagem do sistema"
+  - "3. Analyze — análise de alternativas"
+  - "4. Decide — decisão registrada"
+  - "5. Contrato para o Briefing (ponte para Fase 1)"
+---
+
 # BMAD — [Nome do Módulo]
 
 **Data:** [YYYY-MM-DD]
