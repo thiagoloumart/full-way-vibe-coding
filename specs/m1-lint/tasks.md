@@ -43,17 +43,18 @@ Implementação por fase (Manual §12). Todas as tasks são <1 dia de trabalho.
 ### T-002 — Criar fixtures mínimas para F1
 - **Estado:** ⬜
 - **Depende de:** T-001.
-- **Descrição:** criar 5 fixtures Markdown em `harness/tests/fixtures/`:
+- **Descrição:** criar 6 fixtures Markdown em `harness/tests/fixtures/`:
   - `valid_minimal.md` — front-matter OK com `requer: []` e corpo vazio.
   - `no_frontmatter.md` — Markdown sem bloco `---...---`.
   - `yaml_invalid.md` — front-matter com YAML malformado (tabs misturados).
   - `missing_required_field.md` — faltando campo `artefato:`.
   - `wrong_type.md` — `requer: "string"` em vez de lista.
-- **Arquivos:** 5 arquivos em `harness/tests/fixtures/`.
+  - `unknown_key.md` — front-matter válido + chave extra `custom_field: x` que deve ser aceita (cobre FR-017). *(Adicionado em resposta ao Problema #1 da Fase 6 Analyze.)*
+- **Arquivos:** 6 arquivos em `harness/tests/fixtures/`.
 - **Contrato afetado:** nenhum.
 - **Testes exigidos:** não aplicável nesta task (fixtures são usadas pelas próximas).
 - **Definition of Done:**
-  - [ ] 5 arquivos criados com conteúdo coerente.
+  - [ ] 6 arquivos criados com conteúdo coerente.
   - [ ] Arquivo `valid_minimal.md` pode ser aberto e tem YAML válido.
 - **Risco:** 🟢.
 
@@ -108,8 +109,9 @@ Implementação por fase (Manual §12). Todas as tasks são <1 dia de trabalho.
   - `test_cli_not_md` — argv=.txt → exit 2, stderr contém `ARQUIVO_NAO_MARKDOWN`.
   - `test_cli_missing_required` — argv=fixture → exit 1, stdout contém `CAMPO_OBRIGATORIO_AUSENTE: artefato`.
   - `test_cli_wrong_type` — argv=fixture → exit 1, stdout contém `CAMPO_TIPO_INVALIDO: requer`.
+  - `test_cli_unknown_frontmatter_key_accepted` — argv=unknown_key → exit 0 (FR-017: chaves extras aceitas em M1). *(Adicionado em resposta ao Problema #1 da Fase 6 Analyze.)*
 - **Definition of Done:**
-  - [ ] 7 testes passam.
+  - [ ] 8 testes passam.
   - [ ] `python -m harness.scripts.lint_artefato harness/tests/fixtures/valid_minimal.md` roda via CLI e retorna código correto.
   - [ ] F1 está "pronta" conforme `plan.md §3 F1`.
 - **Risco:** 🟡 — argparse tem comportamentos default em erro (stderr vs stdout) que podem precisar custom; documentar.
@@ -256,9 +258,13 @@ Implementação por fase (Manual §12). Todas as tasks são <1 dia de trabalho.
 - **Estado:** ⬜
 - **Depende de:** T-012, T-013.
 - **Descrição:** corresponde à Fase 8 do ciclo. Rodar `pytest -v`; garantir ≥30 testes passando (soma das tasks); rodar smoke em todos os `.md` do repo e confirmar SC-001 a SC-005; medir tempo (SC-003); documentar execução em quickstart.
-- **Arquivos:** nenhum novo; aumenta testes se regressão aparecer.
+- **Arquivos:** `harness/tests/test_lint_artefato.py` (adicionar 3 mini-testes cobrindo edge cases identificados em Fase 6 Analyze §6 tabela 🟡).
+- **Testes exigidos adicionais (resposta ao Problema #3 da Fase 6 Analyze):**
+  - `test_cli_link_above_repo_root` — link relativo `[x](../../../../README.md)` resolvido e validado conforme existência; se existe, exit 0 (comportamento aceito).
+  - `test_cli_link_url_encoded` — link `[x](./file%20with%20space.md)` com arquivo `file with space.md` correspondente no filesystem → exit 0.
+  - `test_cli_unknown_frontmatter_key_still_valid` — reforço do comportamento visto em T-004 em smoke cross-repo: artefato real com chave extra não conhecida ainda passa.
 - **Definition of Done:**
-  - [ ] `pytest` todos verdes.
+  - [ ] `pytest` todos verdes (≥33 testes: 30 das tasks + 3 deste T-014).
   - [ ] SC-001 a SC-005 marcados como cumpridos.
   - [ ] Nenhum teste falhando nem skipado sem justificativa.
 - **Risco:** 🟡.

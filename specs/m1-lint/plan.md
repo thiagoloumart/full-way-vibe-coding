@@ -181,7 +181,7 @@ Zero rede, zero API externa. Invariante de Camada 1 §6.
 | CLI library | argparse / click / typer / nada | argparse (stdlib) | Zero dep extra; suficiente | ✅ Camada 2 §4 |
 | Cor | dep `colorama` / ANSI inline / sem cor | ANSI inline | Mantém `pyyaml` como única dep externa | ✅ Camada 2 §8 |
 | Testes | unittest / pytest | pytest | Mais idiomático; ADR-002 já declara dev-dep | ✅ Camada 2 §4 |
-| Organização | 1 arquivo `lint_artefato.py` / módulo dividido | 1 arquivo | ≤300 linhas caberão; dividir prematura | [INFERÊNCIA] espero caber; se estourar, ADR-004 |
+| Organização | 1 arquivo `lint_artefato.py` / módulo dividido | 1 arquivo | ≤300 linhas caberão; dividir prematura | [INFERÊNCIA] espero caber. **Critério quantitativo de refactor:** se o arquivo ultrapassar 350 linhas de código (`cloc --by-file --include-lang=Python lint_artefato.py` sem contar docstrings e linhas em branco), abrir ADR-004 e fragmentar em `harness/scripts/lint/` com sub-módulos (`parser.py`, `validator.py`, `report.py`, `cli.py`). *(Critério adicionado em resposta ao Problema #2 da Fase 6 Analyze.)* |
 
 ## 7. Riscos técnicos e mitigações
 

@@ -226,11 +226,11 @@ Cross-check C-NNN do clarify:
 
 | # | Descrição | Gravidade | Ação recomendada | Status |
 |---|---|---|---|---|
-| 1 | FR-017 (chaves extras no front-matter) sem teste explícito; só comportamento inferido do pyyaml. | 🟡 média | Adicionar teste `test_cli_unknown_frontmatter_key_accepted` em T-004 (ou T-014). Fixture nova `unknown_key.md`. | **Vou adicionar em T-004** (ajuste na tasks.md pós-analyze). |
-| 2 | Decisão "1 arquivo único" sem critério quantitativo de quando refactorar. | 🟢 baixa | Registrar em `plan.md §6` como "se `lint_artefato.py` ultrapassar 350 linhas de código (excluindo docstrings e blank lines), abrir ADR-004 e fragmentar em módulos." | **Vou adicionar no plan.md**. |
-| 3 | Edge cases "link sobe raiz", "chave extra front-matter", "URL-encoded" sem teste em T-014. | 🟡 média | Adicionar 3 mini-testes no DoD de T-014. | **Vou adicionar em tasks.md T-014**. |
+| 1 | FR-017 (chaves extras no front-matter) sem teste explícito; só comportamento inferido do pyyaml. | 🟡 média | Adicionar teste `test_cli_unknown_frontmatter_key_accepted` em T-004 + fixture `unknown_key.md` em T-002. | ✅ **Resolvido** — `tasks.md` T-002 e T-004 atualizados no mesmo commit desta remediação. |
+| 2 | Decisão "1 arquivo único" sem critério quantitativo de quando refactorar. | 🟢 baixa | Registrar em `plan.md §6` como "se `lint_artefato.py` ultrapassar 350 linhas de código (excluindo docstrings e blank lines), abrir ADR-004 e fragmentar em módulos." | ✅ **Resolvido** — `plan.md §6` atualizado. |
+| 3 | Edge cases "link sobe raiz", "chave extra front-matter", "URL-encoded" sem teste em T-014. | 🟡 média | Adicionar 3 mini-testes no DoD de T-014. | ✅ **Resolvido** — `tasks.md` T-014 atualizado com 3 mini-testes. |
 
-Os 3 são corrigíveis **sem invalidar o plano**. Correções aplicadas abaixo via edição dos artefatos referenciados.
+**Todos os 3 problemas resolvidos em linha.** Nenhum bloqueia Fase 7.
 
 ---
 
