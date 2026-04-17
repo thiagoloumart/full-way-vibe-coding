@@ -4,7 +4,7 @@ fase: null
 dominio: [any]
 schema_version: 1
 adr_id: ADR-003
-status: Proposta
+status: Aceita
 camada_afetada: 2
 data: 2026-04-17
 autor: Thiago Loumart
@@ -18,11 +18,11 @@ requer:
 
 # ADR-003 — Estratégia de publicação da v1.2 (mesmo repo vs novo repo)
 
-**Status:** Proposta — `[DECISÃO HUMANA: tema=estratégia-publicação]`
+**Status:** Aceita
 **Data:** 2026-04-17
 **Autor:** Thiago Loumart
 **Camada afetada:** 2 (escolha — afeta visibilidade e continuidade histórica)
-**Bump de Constituição:** minor (quando aceita)
+**Bump de Constituição:** minor (v1.1 → v1.1.2) — materializado quando `constitution.md` do próprio repo for instanciado
 
 > Decisão **bloqueante para W4**. Não pode ser deixada implícita porque afeta:
 > (a) continuidade do histórico de commits, (b) confiança pública do método, (c) URLs
@@ -51,11 +51,19 @@ O repo atual `thiagoloumart/full-way-vibe-coding` tem:
 A escolha é estrutural: continuar no mesmo repo preserva histórico e a narrativa
 "score 54 → 75 em 60 dias via dogfood"; criar repo novo oferece história limpa.
 
-## Decisão (a propor ao humano — esta ADR está em estado `Proposta`)
+## Decisão
 
-> **Recomendação do autor da ADR:** **Opção A (mesmo repo, tag `v1.2.0`)**.
->
-> A decisão final é do humano proprietário; esta ADR fica `Proposta` até assinatura.
+**Opção A — continuar em `thiagoloumart/full-way-vibe-coding`, tag `v1.2.0` ao fim da adequação.**
+
+Decisão do proprietário do repo em 2026-04-17, na sequência do fim de W0. Recomendação
+do autor da ADR confirmada.
+
+Complemento operacional decidido na mesma conversa:
+- **Push imediato** dos commits de W0 para `origin/main` (em vez do plano original de
+  "nada no GitHub até W4"), para preservar backup, habilitar CI em W1 e fortalecer a
+  narrativa pública de evolução.
+- **Branch protection** ativada **ao fim de W1** (quando o lint entrar em CI e os
+  `required status checks` ganharem dentes); antes disso é cerimônia.
 
 Ver seção "Alternativas consideradas" para os 3 caminhos reais e justificativa.
 
@@ -159,11 +167,12 @@ assinado pelo proprietário do repo em forma explícita:
 
 | Papel | Nome | Data | Assinatura |
 |---|---|---|---|
-| Autor da ADR (recomendação Opção A) | Thiago Loumart | 2026-04-17 | proposta |
-| **Proprietário do repo — aprovador final** | Thiago Loumart | pendente | **pendente** |
+| Autor da ADR (recomendação Opção A) | Thiago Loumart | 2026-04-17 | ✓ |
+| **Proprietário do repo — aprovador final** | Thiago Loumart | 2026-04-17 | ✓ |
 
 ## Histórico de status
 
 | Data | Status | Mudança |
 |---|---|---|
-| 2026-04-17 | Proposta | Criada em W0 por demanda explícita do autor durante sessão de dogfood; decisão final pendente de assinatura humana antes de W4. |
+| 2026-04-17 | Proposta | Criada em W0 por demanda explícita do autor durante sessão de dogfood. |
+| 2026-04-17 | Aceita | Aprovada pelo proprietário (Thiago Loumart) — Opção A (mesmo repo, tag v1.2.0) com push imediato de W0 e branch protection ao fim de W1. |

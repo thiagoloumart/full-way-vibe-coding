@@ -17,12 +17,12 @@
 |---|---|---|---|---|---|
 | [ADR-001](ADR-001-v1.1-dual-domain.md) | Adoção de arquitetura dual-domain (D1/D2/D3/híbrido) na v1.1 | Aceita (retroativa) | 1 | 2026-04-17 | Thiago Loumart |
 | [ADR-002](ADR-002-stack-harness.md) | Stack do harness: Python 3.11+ com `pyyaml` | Aceita | 2 | 2026-04-17 | Thiago Loumart |
-| [ADR-003](ADR-003-estrategia-publicacao.md) | Estratégia de publicação v1.2 (mesmo repo vs novo repo) | **Proposta** — `[DECISÃO HUMANA]` pendente | 2 | 2026-04-17 | Thiago Loumart |
+| [ADR-003](ADR-003-estrategia-publicacao.md) | Estratégia de publicação v1.2 (mesmo repo, Opção A) | Aceita | 2 | 2026-04-17 | Thiago Loumart |
 
 ## Gates abertos
 
-- **ADR-003** bloqueia Wave 4 (publicação). Antes de abrir W4, humano precisa assinar
-  Opção A ou B e atualizar status para `Aceita`.
+_Nenhum no momento._ ADR-003 foi Aceita em 2026-04-17 com Opção A (mesmo repo, tag
+`v1.2.0` ao fim da adequação).
 
 ## Próximas ADRs esperadas (projeção)
 
