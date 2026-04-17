@@ -6,7 +6,19 @@ Tirar a ideia da cabeça e colocar em **linguagem de negócio clara**. Sem técn
 ## Entradas
 - Módulo escolhido na Fase 0.
 - Ideia reformulada e confirmada.
+- **`bmad.md` validado** (Fase 0.5) — problema real, atores, fluxo, caminho escolhido.
+- **`decision_log.md`** com `D-NNN` já assinadas.
 - Qualquer contexto auxiliar já coletado.
+
+## Herança do BMAD
+O briefing **NÃO redescobre** problema, atores ou fluxo — isso foi feito na Fase 0.5.
+O briefing **DETALHA em linguagem de negócio** o que o BMAD já estabeleceu:
+- expande o **problema real** de `bmad.md §1.1` em relato com dores concretas e exemplos do dia a dia,
+- amplia os **atores** de `bmad.md §2.1` com permissões de alto nível,
+- narra o **fluxo principal** de `bmad.md §2.2` com verbos de ação e casos reais,
+- preenche modelo de cobrança, papéis, módulos secundários.
+
+Se durante o briefing surgir algo que **contradiz** `bmad.md` ou `decision_log.md`: parar, voltar à Fase 0.5, registrar nova `D-NNN`, atualizar `bmad.md` e só então retomar o briefing. Nunca remendar só no briefing.
 
 ## Saídas
 - `briefing.md` (usar [`templates/briefing.md`](../templates/briefing.md)).
@@ -35,13 +47,13 @@ Tirar a ideia da cabeça e colocar em **linguagem de negócio clara**. Sem técn
 - **Empatia + provocação:** se a resposta for vaga, peça exemplo prático.
 - **Verbos de ação:** o usuário faz, o sistema envia, o atendente aprova.
 
-### Fase 1.a — Visão de Negócio
-Perguntas em ordem (uma por vez):
-1. Qual é a principal dor que o software vai resolver? Quais os relatos reais?
+### Fase 1.a — Visão de Negócio (partindo do BMAD)
+Perguntas em ordem (uma por vez). As perguntas 1 e 3 **partem do que já foi modelado em BMAD**, não começam do zero:
+1. "A dor identificada em `bmad.md §1.1` foi **<X>**. Pode trazer 2–3 relatos reais do dia a dia que confirmam isso?"
 2. Como você descreveria esse sistema em um parágrafo para um investidor?
-3. Quem vai usar? Como vão acessar? (app cliente + painel interno? só interno? só cliente?)
+3. "Os atores em `bmad.md §2.1` são **<lista>**. Precisa ajustar, adicionar ou remover algum antes de avançarmos?"
 4. Qual o modelo de precificação? (assinatura, por transação, licença, free com add-on?)
-5. Quais níveis de usuário existem? (admin, gerente, cliente, prestador, etc.)
+5. "Confirma os níveis de usuário de `bmad.md §2.1`, ou há perfil adicional que só aparece no detalhe de negócio (ex: gerente, supervisor, auditor)?"
 
 ### Fase 1.b — Loop de Requisitos (por módulo)
 Para cada módulo:
@@ -80,6 +92,7 @@ Compilar tudo em `briefing.md` seguindo o template. **Não é resumo bruto**: é
 - [ ] Cada módulo teve loop de requisitos com pergunta cíclica respondida ("terminei").
 - [ ] `briefing.md` gerado, reescrito e **validado pelo humano**.
 - [ ] Checklist [`checklists/qualidade-briefing.md`](../checklists/qualidade-briefing.md) cumprido.
+- [ ] Briefing é **coerente com `bmad.md` e `decision_log.md`** — nenhum item novo contradiz o caminho escolhido em Decide sem nova `D-NNN` registrada.
 
 ## O que invalida a fase
 - Briefing contém decisão técnica (framework, banco).

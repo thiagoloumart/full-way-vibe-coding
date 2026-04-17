@@ -54,6 +54,7 @@ A seção 28 oferece um **protocolo de execução expandido em 13 etapas** (incl
 14. Em projetos **brownfield** (código existente), a IA deve primeiro **ler** o que já existe antes de propor estrutura nova.
 15. Modelos diferentes servem a fases diferentes. O critério de escolha é **resultado**, não preferência.
 16. Para **CRM / agentes / SaaS** (seção 29), confiabilidade operacional, rastreabilidade e permissão por papel são prioridade máxima — toda automação deve ter gatilho, contexto, decisão, ação, fallback, log, critério de sucesso, risco de falso positivo.
+17. **Raciocínio estrutural (BMAD) precede requisitos de negócio.** Sem Breakdown/Model/Analyze/Decide formalizados na Fase 0.5, briefing e spec herdam pressupostos implícitos: problema confundido com sintoma, atores descobertos tardiamente, primeira ideia virando única ideia, decisões estratégicas sem registro auditável.
 
 ### Restrições
 - Não fazer várias features grandes ao mesmo tempo sem modularização.
@@ -88,7 +89,8 @@ O documento principal **não especifica**:
 | Como conduzir a clarificação | Usar modelo "descoberta guiada com caminhos sugeridos" do `PROMPT_SPEC.md` | Alinha-se à seção 10 e à seção 3 (propor opções, recomendar melhor) |
 | Como inicializar a Constituição quando não existir | Gerar rascunho inferido a partir de briefing + stack declarada, marcar como "Constituição v0", exigir validação humana antes de tratar como canônica | Seção 7 é obrigatória mas o Manual não trata do caso "projeto zero" |
 | Modelo concreto para cada etapa do ciclo | Cada fase tem um arquivo dedicado em `fases/` com: entradas, saídas, perguntas-padrão, riscos, gate de avanço, como invalidar, sinal de travamento | Seção 4.4 do `promptraiz.md` exige isso |
-| Como registrar a trilha de auditoria | Sugerir estrutura de pastas `docs/specs/<feature>/` com briefing.md, spec.md, clarify.md, plan.md, tasks.md, analyze.md, quickstart.md, review.md | Seção 18 (git/merge) implica, mas não nomeia a estrutura |
+| Como registrar a trilha de auditoria | Sugerir estrutura de pastas `docs/specs/<feature>/` com bmad.md, decision_log.md, briefing.md, spec.md, clarify.md, plan.md, tasks.md, analyze.md, quickstart.md, review.md | Seção 18 (git/merge) implica, mas não nomeia a estrutura |
+| Como garantir **raciocínio estrutural pré-briefing** | Adicionar **Fase 0.5 BMAD** (Breakdown/Model/Analyze/Decide) entre Recepção e Briefing, com templates próprios (`bmad.md`, `decision_log.md`) e checklist de qualidade | O Manual trata de decomposição, análise de alternativas e decisão apenas implicitamente, misturados em fases posteriores; Fase 0.5 consolida esse raciocínio num único ponto antes da spec |
 
 Inferências explicitamente sinalizadas com `[INFERÊNCIA]` nos artefatos.
 
@@ -105,14 +107,24 @@ Inferências explicitamente sinalizadas com `[INFERÊNCIA]` nos artefatos.
     ┌─────────────────────────────────────────────────┐
     │ FASE 0 — RECEPÇÃO E QUEBRA EM MÓDULOS           │
     │ Inputs: ideia, contexto, stack, prazo           │
-    │ Output: lista de módulos ordenados por valor    │
+    │ Output: lista de módulos + hipóteses iniciais   │
     │ Gate: humano escolhe módulo inicial (MVP)       │
     └─────────────────────────────────────────────────┘
                            │
                            ▼
     ┌─────────────────────────────────────────────────┐
+    │ FASE 0.5 — BMAD                                  │
+    │ Breakdown / Model / Analyze / Decide            │
+    │ Raciocínio estrutural pré-spec                  │
+    │ Output: bmad.md + decision_log.md               │
+    │ Gate: decisão estratégica assinada por humano   │
+    └─────────────────────────────────────────────────┘
+                           │
+                           ▼
+    ┌─────────────────────────────────────────────────┐
     │ FASE 1 — BRIEFING                                │
-    │ Foco: dor, uso, fluxo, valor                    │
+    │ Herda contrato do BMAD                          │
+    │ Foco: dor, uso, fluxo, valor (detalhados)       │
     │ Output: briefing.md                             │
     │ Gate: humano valida briefing                    │
     └─────────────────────────────────────────────────┘
@@ -228,6 +240,9 @@ Inferências explicitamente sinalizadas com `[INFERÊNCIA]` nos artefatos.
 | Constituição não existe em projeto novo | Fase 3.5 cria v0 e exige validação humana |
 | Em projeto brownfield, duplica-se algo existente | `protocolos/brownfield.md` exige leitura prévia |
 | Modelo errado para o tipo de tarefa | Seção 22: trocar abordagem/modelo quando problema persiste |
+| Spec começa com ângulo de solução implícito | Fase 0.5 BMAD força análise de ≥2 caminhos com trade-offs antes de requirements |
+| Decisões estratégicas ficam só na memória do humano | Fase 0.5 produz `decision_log.md` com `D-NNN` auditável (descartes, riscos aceitos, critérios de invalidação) |
+| Atores/fluxos descobertos tardiamente dentro da spec | Fase 0.5 Model formaliza atores, fluxo e entidades antes do briefing |
 
 ---
 

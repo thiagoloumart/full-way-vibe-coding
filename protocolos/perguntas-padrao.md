@@ -12,6 +12,40 @@ Coleção de perguntas reutilizáveis. A skill deve sempre fazer **uma por vez**
 - "Tem stack já decidida ou quer sugestão?"
 - "Quais módulos você já imagina que o sistema tem?"
 - "Se tivermos que escolher UM módulo para sair primeiro, qual é o que, sozinho, já entrega valor?"
+- "Por que esse módulo destrava o valor principal? (hipótese estratégica em 1 frase)"
+- "Por que ele vem antes dos demais? (justificativa de priorização)"
+- "Qual é o ângulo do problema que ainda precisa de raciocínio estrutural? (ângulo para a Fase 0.5 BMAD)"
+
+## Fase 0.5 — BMAD
+### Breakdown
+- "Qual é o problema real que esse módulo resolve, em 1 frase sem mencionar solução?"
+- "Quem sente essa dor, em que momento, com que frequência?"
+- "O que é causa-raiz aqui e o que é sintoma aparente?"
+- "Quais subproblemas existem dentro desse problema? (regra MECE — sem sobreposição, sem gap)"
+- "O que é core (sem isso não resolve) vs periférico (alivia mas não resolve)?"
+
+### Model
+- "Quais são os papéis envolvidos? (usuário, admin, sistema, integração externa, operador, auditor)"
+- "Como seria o fluxo ponta a ponta em 3–7 passos, apenas caminho feliz?"
+- "Que entidades aparecem? (sem tipos técnicos)"
+- "Onde estão as fricções previsíveis? (gargalo, espera humana, decisão manual, dependência externa)"
+- "O que precisa ficar salvo entre sessões?"
+- "Esse módulo toca alguma regra sensível? (cobrança, permissão, estorno, deleção, expiração, visibilidade, histórico, auditoria)"
+
+### Analyze
+- "Quais caminhos plausíveis existem para resolver isso? (mínimo 2, máximo 4)"
+- "Qual é o menor caminho funcional que ainda prova valor?"
+- "Qual maximiza velocidade? Qual maximiza qualidade/manutenibilidade?"
+- "Onde cada caminho corre risco de overengineering?"
+- "Pre-mortem: se daqui a 30 dias isso falhar, por quê terá sido?"
+- "Qual caminho é reversível se der errado?"
+
+### Decide
+- "Qual caminho foi escolhido? Por qual critério dominante?"
+- "O que está sendo descartado, e por qual motivo cada um?"
+- "Quais riscos estamos aceitando conscientemente? (marcar [RISCO ASSUMIDO])"
+- "O que invalidaria essa decisão daqui para frente? (critérios de revisão)"
+- "Que hipóteses ficam em aberto a validar?"
 
 ## Fase 1 — Briefing
 ### Visão de negócio

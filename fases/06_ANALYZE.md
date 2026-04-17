@@ -3,15 +3,20 @@
 > Manual §13. Este é o gate **mais barato** e **mais importante** do processo. Problemas pegos aqui custam minutos. Os mesmos problemas descobertos após código custam horas ou dias.
 
 ## Objetivo
-Rodar uma análise cruzada entre **Constituição × Spec × Plano × Tasks** para detectar, antes da primeira linha de código:
+Rodar análise **TÉCNICA** cruzada entre **Constituição × Spec × Plano × Tasks × Decision Log** para detectar, antes da primeira linha de código:
 - Inconsistência.
 - Duplicação.
 - Ambiguidade restante.
 - Conflito com arquitetura existente.
 - Conflito com versão de biblioteca.
 - Cobertura insuficiente.
+- **Decisão estratégica silenciosamente revertida** (spec/plano/tasks contradizendo `decision_log.md` sem nova `D-NNN`).
+
+⚠️ **Esta fase NÃO analisa estratégia** — isso foi feito na **Fase 0.5 (BMAD)**. Se surgir aqui uma dúvida estratégica (ex: "o caminho escolhido ainda faz sentido?"), **voltar à Fase 0.5** e registrar nova `D-NNN` em `decision_log.md` antes de seguir.
 
 ## Entradas
+- `bmad.md` (rastreabilidade estratégica)
+- `decision_log.md` (rastreabilidade de decisões `D-NNN`)
 - `constitution.md`
 - `spec.md` (pós-clarify)
 - `clarify.md`
@@ -48,6 +53,12 @@ Todas as regras sensíveis (cobrança, permissão, estorno, deleção, expiraç�
 ### 6.7 — Brownfield: duplicação
 Algum arquivo/entidade/rota/componente proposto duplica algo que já existe no repo?
 Se sim: reutilizar; atualizar plano e tasks.
+
+### 6.8 — Spec × Decision Log (rastreabilidade estratégica)
+Cada decisão `D-NNN` do `decision_log.md` foi respeitada pela spec/plano/tasks?
+Existe alguma decisão que foi **silenciosamente revertida** (FR contradiz `D-NNN` sem nova entrada de revisão)?
+Cada FR tem origem rastreável (`D-NNN` ou seção do briefing)?
+Se houve reversão: foi registrada como nova `D-NNN` com campo `Origem: revisão de D-00Y`?
 
 ## Formato do `analyze.md`
 

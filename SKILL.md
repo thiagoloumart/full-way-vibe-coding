@@ -46,20 +46,21 @@ Se algum opcional for relevante e não fornecido, a skill **pergunta antes de av
 ## 4. Fluxo operacional (mapa mestre)
 
 ```
-Fase 0  Recepção + quebra em módulos     → módulos priorizados
-Fase 1  Briefing                          → briefing.md
-Fase 2  Especificação                     → spec.md
-Fase 3  Clarificação                      → clarify.md
-Fase 3.5 Constituição (criar/confirmar)   → constitution.md
-Fase 4  Planejamento técnico              → plan.md
-Fase 5  Tasks                             → tasks.md
-Fase 6  Análise cruzada (GATE)            → analyze.md
-Fase 7  Implementação                     → código + migrations
-Fase 8  Testes                            → suíte passando
-Fase 9  Quickstart                        → quickstart.md
-Fase 10 Review                            → review.md
-Fase 11 Merge                             → master atualizada
-        Repetir para próximo módulo
+Fase 0    Recepção + quebra em módulos      → módulos priorizados
+Fase 0.5  BMAD (Breakdown/Model/Analyze/Decide) → bmad.md + decision_log.md
+Fase 1    Briefing                          → briefing.md
+Fase 2    Especificação                     → spec.md
+Fase 3    Clarificação                      → clarify.md
+Fase 3.5  Constituição (criar/confirmar)    → constitution.md
+Fase 4    Planejamento técnico              → plan.md
+Fase 5    Tasks                             → tasks.md
+Fase 6    Análise cruzada (GATE)            → analyze.md
+Fase 7    Implementação                     → código + migrations
+Fase 8    Testes                            → suíte passando
+Fase 9    Quickstart                        → quickstart.md
+Fase 10   Review                            → review.md
+Fase 11   Merge                             → master atualizada
+          Repetir para próximo módulo
 ```
 
 Cada fase tem arquivo dedicado em [`fases/`](fases/) com: entradas, saídas, perguntas-padrão, riscos, gate de avanço, como invalidar, sinal de travamento.
@@ -76,13 +77,14 @@ Cada fase tem arquivo dedicado em [`fases/`](fases/) com: entradas, saídas, per
 7. Proibido subir para master sem revisão mínima e testes.
 
 ### Obrigatoriedades (seção 6)
-1. Toda feature nasce de briefing.
-2. Toda feature tem spec clara.
-3. Toda spec passa por clarificação.
-4. Toda implementação respeita a Constituição.
-5. Toda implementação gera ou mantém testes.
-6. Toda implementação é revisada antes do merge.
-7. Toda nova spec nasce da branch master atualizada.
+1. Toda feature passa por **BMAD (Fase 0.5)** antes do briefing — problema, modelo, alternativas e decisão registrados.
+2. Toda feature nasce de briefing.
+3. Toda feature tem spec clara, rastreável a decisões `D-NNN` do `decision_log.md`.
+4. Toda spec passa por clarificação.
+5. Toda implementação respeita a Constituição.
+6. Toda implementação gera ou mantém testes.
+7. Toda implementação é revisada antes do merge.
+8. Toda nova spec nasce da branch master atualizada.
 
 ### Conduta da IA (seções 3, 20, 27)
 - Nunca inventa requisito não pedido.
@@ -114,13 +116,18 @@ Ao receber a ideia, antes de qualquer plano:
    - Se isso não existir agora, alguém pagaria para usar? Se não → **essencial**.
 6. **Quebrar em módulos** e ordenar por valor entregue (o fluxo central vem primeiro).
 7. **Escolher UM módulo** para o primeiro ciclo.
+8. **Registrar hipóteses estratégicas iniciais** (1 frase cada): por que esse módulo destrava valor, por que vem antes dos demais, qual ângulo precisa de raciocínio estrutural na Fase 0.5.
 
-Saída da Fase 0: lista de módulos com um selecionado como alvo.
+Saída da Fase 0: lista de módulos com um selecionado como alvo + hipóteses estratégicas iniciais.
+
+Imediatamente depois, a condução passa à **Fase 0.5 — BMAD** para raciocínio estrutural (Breakdown/Model/Analyze/Decide) antes do briefing. Ver [`fases/00_5_BMAD.md`](fases/00_5_BMAD.md).
 
 ## 7. Briefings e artefatos intermediários
 
 | Artefato | Fonte | Gerado em | Validado por |
 |---|---|---|---|
+| **bmad.md** | [templates/bmad.md](templates/bmad.md) | Fase 0.5 | humano |
+| **decision_log.md** | [templates/decision_log.md](templates/decision_log.md) | Fase 0.5 | humano |
 | **briefing.md** | [templates/briefing.md](templates/briefing.md) | Fase 1 | humano |
 | **spec.md** | [templates/spec.md](templates/spec.md) | Fase 2 | humano |
 | **clarify.md** | [templates/clarify.md](templates/clarify.md) | Fase 3 | humano |
@@ -139,6 +146,8 @@ Estrutura de pastas sugerida no repositório:
     constitution.md
     specs/
       <NNN-nome-do-modulo>/
+        bmad.md
+        decision_log.md
         briefing.md
         spec.md
         clarify.md

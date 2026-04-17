@@ -12,6 +12,7 @@ Transformar uma ideia crua em um **alvo de ciclo** concreto: um módulo único, 
 - Classificação do projeto (greenfield | brownfield | extensão).
 - Lista de módulos detectados, ordenados por valor.
 - Módulo escolhido como alvo do primeiro ciclo.
+- **Hipóteses estratégicas iniciais** sobre o módulo escolhido (alimentam a Fase 0.5 BMAD).
 
 ## Perguntas-padrão (uma por vez)
 1. "Entendi sua ideia assim: **<reformulação>**. É isso mesmo, ou quer ajustar?"
@@ -31,6 +32,15 @@ Para cada módulo candidato, classificar:
 - **Cosmético** — fica para depois (dark mode, polimento, microdetalhes).
 
 Prioridade no ciclo inicial: sempre um **core**.
+
+## Ponte para Fase 0.5 (BMAD)
+Ao escolher o módulo, registrar **1 frase** para cada hipótese estratégica inicial. Essas frases alimentam a Fase 0.5 e serão testadas/refinadas lá:
+
+- **Hipótese estratégica:** por que esse módulo destrava o valor principal do sistema?
+- **Justificativa de priorização:** por que ele vem **antes** dos demais módulos?
+- **Ângulo a explorar em BMAD:** qual é o recorte do problema que ainda precisa de raciocínio estrutural (causa-raiz, atores, alternativas)?
+
+Se o humano não conseguir formular alguma dessas frases com clareza, **esse é exatamente o motivo para ir à Fase 0.5**. A Fase 0.5 não exige respostas finais aqui — apenas o **ângulo inicial**.
 
 ## Caminhos sugeridos (modelo de output)
 ```
@@ -61,6 +71,7 @@ Para sair da Fase 0:
 - [ ] Lista de módulos existe e está priorizada.
 - [ ] Humano escolheu **UM** módulo para o ciclo.
 - [ ] Em brownfield, a skill leu o repositório antes de propor estrutura.
+- [ ] **Hipóteses estratégicas iniciais** registradas (hipótese, justificativa de priorização, ângulo para BMAD).
 
 ## O que invalida a fase
 - Módulo escolhido não é core e não há justificativa.

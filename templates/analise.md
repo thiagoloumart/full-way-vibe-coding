@@ -1,6 +1,6 @@
 # Análise Cruzada — [Nome do Módulo]
 
-**Entradas:** `constitution.md` v<x>, `spec.md` v<x>, `clarify.md` v<x>, `plan.md` v<x>, `tasks.md` v<x>
+**Entradas:** `bmad.md` v<x>, `decision_log.md` v<x>, `constitution.md` v<x>, `spec.md` v<x>, `clarify.md` v<x>, `plan.md` v<x>, `tasks.md` v<x>
 **Data:** [YYYY-MM-DD]
 **Status:** 🟢 Limpa | 🟡 Com riscos assumidos | 🔴 Bloqueada
 
@@ -50,6 +50,13 @@
 ## 8. Brownfield — duplicação
 | Entidade/arquivo/rota proposto | Já existe algo similar? | Onde | Ação |
 |---|---|---|---|
+
+## 8.5 Spec × Decision Log (rastreabilidade estratégica)
+| D-NNN | Tema | Respeitada por spec/plano/tasks? | FR/Task ref | Observação |
+|---|---|---|---|---|
+| D-001 | ... | ✅ | FR-00X / T-00Y | ... |
+| D-002 | ... | ⚠️ | ... | parcialmente revertida — nova D-003? |
+| D-003 | ... | ❌ | — | silenciosamente revertida — exigir nova D-NNN ou corrigir spec |
 
 ## 9. Consistência interna
 - [ ] Nomenclatura consistente entre spec, plan e tasks.

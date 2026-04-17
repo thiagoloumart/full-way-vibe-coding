@@ -22,6 +22,7 @@ Skill Vibe Coding Completa/
 │
 ├── fases/                        ciclo passo a passo
 │   ├── 00_RECEPCAO.md            recepção + quebra em módulos
+│   ├── 00_5_BMAD.md              breakdown / model / analyze / decide
 │   ├── 01_BRIEFING.md            dor, uso, fluxo, valor
 │   ├── 02_SPEC.md                user stories, FR, SC, edge cases
 │   ├── 03_CLARIFY.md             elimina ambiguidade/omissão/contradição
@@ -36,6 +37,8 @@ Skill Vibe Coding Completa/
 │   └── 11_MERGE.md               git, branches, merge
 │
 ├── templates/                    arquivos prontos para copiar e preencher
+│   ├── bmad.md
+│   ├── decision_log.md
 │   ├── briefing.md
 │   ├── spec.md
 │   ├── clarify.md
@@ -47,6 +50,7 @@ Skill Vibe Coding Completa/
 │   └── review.md
 │
 ├── checklists/                   gates de qualidade
+│   ├── qualidade-bmad.md
 │   ├── qualidade-briefing.md
 │   ├── qualidade-spec.md
 │   ├── qualidade-plano.md
@@ -71,19 +75,20 @@ Skill Vibe Coding Completa/
 📥 ideia bruta
    │
    ▼
-[Fase 0] Recepção e módulos
-[Fase 1] Briefing ──────→ briefing.md
-[Fase 2] Spec ──────────→ spec.md
-[Fase 3] Clarify ───────→ clarify.md
-[Fase 3.5] Constituição ─→ constitution.md
-[Fase 4] Plan ──────────→ plan.md
-[Fase 5] Tasks ─────────→ tasks.md
-[Fase 6] Analyze (GATE) → analyze.md
-[Fase 7] Implement ─────→ código + migrations
-[Fase 8] Test ──────────→ suíte verde
-[Fase 9] Quickstart ────→ quickstart.md
-[Fase 10] Review ───────→ review.md
-[Fase 11] Merge ────────→ master atualizada
+[Fase 0]    Recepção e módulos
+[Fase 0.5]  BMAD ────────→ bmad.md + decision_log.md
+[Fase 1]    Briefing ────→ briefing.md
+[Fase 2]    Spec ────────→ spec.md
+[Fase 3]    Clarify ─────→ clarify.md
+[Fase 3.5]  Constituição → constitution.md
+[Fase 4]    Plan ────────→ plan.md
+[Fase 5]    Tasks ───────→ tasks.md
+[Fase 6]    Analyze (GATE) → analyze.md
+[Fase 7]    Implement ───→ código + migrations
+[Fase 8]    Test ────────→ suíte verde
+[Fase 9]    Quickstart ──→ quickstart.md
+[Fase 10]   Review ──────→ review.md
+[Fase 11]   Merge ───────→ master atualizada
    │
    ▼
 🔁 próximo módulo

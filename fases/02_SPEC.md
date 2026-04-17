@@ -5,6 +5,9 @@ Transformar o briefing em uma **specificação técnica de comportamento**, sem 
 
 ## Entradas
 - `briefing.md` validado.
+- `bmad.md` e `decision_log.md` da Fase 0.5.
+
+Cada FR desta spec deve ser **rastreável** a uma decisão `D-NNN` em `decision_log.md` ou a um item explícito do briefing.
 
 ## Saídas
 - `spec.md` (usar [`templates/spec.md`](../templates/spec.md), baseado em `spec-template.md`).
@@ -33,13 +36,13 @@ Transformar o briefing em uma **specificação técnica de comportamento**, sem 
 ## Condução
 
 ### 2.a Descoberta guiada
-Antes de gerar a spec, clarificar:
-1. **Valor de negócio:** para que serve, qual dor resolve.
-2. **Atores e entidades:** quem interage, quais objetos.
-3. **Persistência:** os dados precisam ficar salvos? (Se o briefing não deixou claro, **perguntar explicitamente**.)
-4. **Interface:** onde o recurso vive? (Web, mobile, API, CLI, background? Se o briefing não clareou e há interface, perguntar.)
+Antes de gerar a spec, clarificar. **Reaproveitar o que já foi modelado em `bmad.md`**, não redescobrir:
+1. **Valor de negócio:** confirmar com o problema real de `bmad.md §1.1` e o caminho escolhido de `bmad.md §4`.
+2. **Atores e entidades:** "Os atores e entidades em `bmad.md §2.1`/`§2.3` estão completos para esta spec? Precisa adicionar/ajustar?"
+3. **Persistência:** cruzar com `bmad.md §2.5`. Se o BMAD não clareou algo, perguntar e registrar nova `D-NNN`.
+4. **Interface:** onde o recurso vive? (Web, mobile, API, CLI, background? Se o BMAD não clareou e há interface, perguntar.)
 5. **Priorização interna:** o que é o coração da feature e como o resto se organiza em P1/P2/P3…
-6. **Itens comuns de software ausentes:** autenticação, autorização, validações, estados vazios, mensagens de erro, integração externa, auditoria, notificações, performance, responsividade, disponibilidade, privacidade, rastreabilidade, relatórios, importação/exportação, permissões administrativas. **Perguntar sobre os que ainda não foram ditos.**
+6. **Itens comuns de software ausentes:** autenticação, autorização, validações, estados vazios, mensagens de erro, integração externa, auditoria, notificações, performance, responsividade, disponibilidade, privacidade, rastreabilidade, relatórios, importação/exportação, permissões administrativas. **Perguntar sobre os que ainda não foram ditos** (inclusive os marcados como candidatas a regras sensíveis em `bmad.md §2.6`).
 
 ### 2.b Mapeamento de edge cases
 Provocar o usuário:
@@ -65,6 +68,8 @@ Gerar em Markdown, com as seções do template.
 - Suposições marcadas com `[INFERÊNCIA]`.
 - Nunca incluir nome de biblioteca, ORM, framework ou tabela.
 - Success criteria devem ser **tecnologia-agnósticos e mensuráveis**.
+- **Rastreabilidade:** cada FR deve referenciar sua origem — `D-NNN` do `decision_log.md` ou seção do briefing (ex: `FR-007 — origem: D-003 / briefing §7.2`).
+- **Coerência:** nenhum FR pode contradizer uma decisão do `decision_log.md` sem que exista nova `D-NNN` de revisão registrada.
 
 ## Riscos da fase
 - Spec que ordena arquitetura ("usar Postgres") → invalida.
@@ -81,12 +86,16 @@ Gerar em Markdown, com as seções do template.
 - [ ] Edge cases mapeados.
 - [ ] Checklist [`checklists/qualidade-spec.md`](../checklists/qualidade-spec.md) cumprido.
 - [ ] Humano validou a spec.
+- [ ] **Cada FR mapeado** a uma `D-NNN` do `decision_log.md` ou a item do briefing.
+- [ ] **Nenhuma contradição** entre a spec e o `decision_log.md`.
 
 ## O que invalida a fase
 - Presença de jargão técnico de implementação.
 - Requisitos em linguagem subjetiva ("deve ser intuitivo").
 - Stories dependentes em cascata sem isolamento testável.
 - Campos `[NEEDS CLARIFICATION]` ainda sem resposta (vão para Fase 3).
+- Spec escrita sem `decision_log.md` assinado pela Fase 0.5.
+- FR sem origem rastreável (nem `D-NNN`, nem seção do briefing).
 
 ## Sinal de travamento
 - Humano não define persistência → travar, ver [`protocolos/travamento.md`](../protocolos/travamento.md).
