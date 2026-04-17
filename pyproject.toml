@@ -1,0 +1,35 @@
+[project]
+name = "full-way-vibe-coding"
+version = "0.1.0"
+description = "Full Way Vibe Coding — SDD methodology skill with dual-domain router and harness tooling"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [
+    { name = "Thiago Loumart" },
+]
+dependencies = [
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+]
+
+[project.scripts]
+lint-artefato = "harness.scripts.lint_artefato:cli_entry"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["harness*"]
+
+[tool.pytest.ini_options]
+testpaths = ["harness/tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
