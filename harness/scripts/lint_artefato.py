@@ -12,6 +12,8 @@ Invariantes (ver constitution.md Camada 1):
 """
 from __future__ import annotations
 
+import argparse
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Literal
@@ -202,3 +204,101 @@ def validate_frontmatter_fields(
             )
 
     return diags
+
+
+# ---------------------------------------------------------------------------
+# Orquestração (F1): lint de um artefato (sem validação de seções nem links ainda)
+# ---------------------------------------------------------------------------
+
+
+def lint_artefato(path: Path) -> list[Diagnostic]:
+    """Executa o lint F1 (front-matter) sobre um artefato.
+
+    Raises:
+        ArquivoNaoEncontrado, ArquivoNaoMarkdown: erros de IO (exit 2 no caller).
+    """
+    text = read_file(path)
+    arquivo = str(path)
+
+    try:
+        fm, linha_fm = parse_frontmatter(text)
+    except FrontmatterAusente as exc:
+        return [Diagnostic(arquivo=arquivo, linha=1, nivel="ERRO",
+                           codigo="FRONTMATTER_AUSENTE", mensagem=str(exc))]
+    except YamlInvalido as exc:
+        return [Diagnostic(arquivo=arquivo, linha=1, nivel="ERRO",
+                           codigo="YAML_INVALIDO", mensagem=str(exc))]
+
+    return validate_frontmatter_fields(fm, arquivo=arquivo, linha_fm=linha_fm)
+
+
+# ---------------------------------------------------------------------------
+# CLI
+# ---------------------------------------------------------------------------
+
+
+def _format_human(diags: list[Diagnostic]) -> str:
+    """Formata diagnósticos para humanos (sem cor — cor vem em F3 / T-011)."""
+    if not diags:
+        return "OK"
+    # Ordenar: erros antes de warnings, então por linha crescente
+    order = {"ERRO": 0, "WARN": 1, "INFO": 2}
+    ordered = sorted(diags, key=lambda d: (order.get(d.nivel, 99), d.linha))
+    return "\n".join(
+        f"{d.arquivo}:{d.linha}: [{d.nivel}] {d.codigo} {d.mensagem}"
+        for d in ordered
+    )
+
+
+def main(argv: list[str] | None = None) -> int:
+    """Entry point do CLI. Retorna código de saída (0=OK, 1=lint error, 2=IO error).
+
+    Flags `--format`, `--warnings-only`, `--no-color` são reservadas; comportamento
+    completo é implementado em F3 (T-011, T-012).
+    """
+    parser = argparse.ArgumentParser(
+        prog="lint-artefato",
+        description="Lint mínimo de artefatos SDD Markdown (M1).",
+    )
+    parser.add_argument("arquivo", type=Path, help="Caminho do arquivo .md a validar")
+    parser.add_argument(
+        "--format",
+        choices=("human", "json"),
+        default="human",
+        help="Formato de saída (default: human). JSON em T-011.",
+    )
+    parser.add_argument(
+        "--warnings-only",
+        action="store_true",
+        help="Trata erros como warnings e força exit 0 (rollout E1). T-012.",
+    )
+    parser.add_argument(
+        "--no-color",
+        action="store_true",
+        help="Desabilita cor ANSI na saída humana. T-011.",
+    )
+
+    args = parser.parse_args(argv)
+
+    try:
+        diags = lint_artefato(args.arquivo)
+    except ArquivoNaoEncontrado as exc:
+        print(str(exc), file=sys.stderr)
+        return 2
+    except ArquivoNaoMarkdown as exc:
+        print(str(exc), file=sys.stderr)
+        return 2
+
+    output = _format_human(diags)
+    print(output)
+
+    return 0 if not diags else 1
+
+
+def cli_entry() -> None:
+    """Wrapper para entry point em pyproject.toml (sys.exit para código correto)."""
+    sys.exit(main(sys.argv[1:]))
+
+
+if __name__ == "__main__":
+    cli_entry()

@@ -136,3 +136,76 @@ class TestValidateFrontmatterFields:
             "outra_chave_extra": ["a", "b"],
         }
         assert la.validate_frontmatter_fields(fm, arquivo="x.md", linha_fm=5) == []
+
+
+# ---------------------------------------------------------------------------
+# T-005 — main CLI com argparse integrando F1
+# ---------------------------------------------------------------------------
+
+
+class TestCLI:
+    def _run(self, fixture: Path, capsys: pytest.CaptureFixture[str]) -> tuple[int, str, str]:
+        code = la.main([str(fixture)])
+        captured = capsys.readouterr()
+        return code, captured.out, captured.err
+
+    def test_cli_valid_minimal(
+        self, fixtures_dir: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        code, out, _ = self._run(fixtures_dir / "valid_minimal.md", capsys)
+        assert code == 0
+        assert "OK" in out
+
+    def test_cli_no_frontmatter(
+        self, fixtures_dir: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        code, out, _ = self._run(fixtures_dir / "no_frontmatter.md", capsys)
+        assert code == 1
+        assert "FRONTMATTER_AUSENTE" in out
+
+    def test_cli_yaml_invalid(
+        self, fixtures_dir: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        code, out, _ = self._run(fixtures_dir / "yaml_invalid.md", capsys)
+        assert code == 1
+        assert "YAML_INVALIDO" in out
+
+    def test_cli_missing_required(
+        self, fixtures_dir: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        code, out, _ = self._run(fixtures_dir / "missing_required_field.md", capsys)
+        assert code == 1
+        assert "CAMPO_OBRIGATORIO_AUSENTE" in out
+        assert "artefato" in out
+
+    def test_cli_wrong_type(
+        self, fixtures_dir: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        code, out, _ = self._run(fixtures_dir / "wrong_type.md", capsys)
+        assert code == 1
+        assert "CAMPO_TIPO_INVALIDO" in out
+        assert "requer" in out
+
+    def test_cli_unknown_frontmatter_key_accepted(
+        self, fixtures_dir: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        """FR-017: chaves desconhecidas no front-matter não bloqueiam o lint."""
+        code, out, _ = self._run(fixtures_dir / "unknown_key.md", capsys)
+        assert code == 0
+        assert "OK" in out
+
+    def test_cli_not_found(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        code, _, err = self._run(tmp_path / "inexistente.md", capsys)
+        assert code == 2
+        assert "ARQUIVO_NAO_ENCONTRADO" in err
+
+    def test_cli_not_md(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        path = tmp_path / "arquivo.txt"
+        path.write_text("conteudo")
+        code, _, err = self._run(path, capsys)
+        assert code == 2
+        assert "ARQUIVO_NAO_MARKDOWN" in err
