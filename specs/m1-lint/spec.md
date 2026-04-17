@@ -14,8 +14,8 @@ requer:
 
 **Feature Branch:** `w1a/lint-artefato`
 **Created:** 2026-04-17
-**Status:** Em clarificação
-**Input:** `briefing.md` + `bmad.md` + `decision_log.md` (D-001, D-002, D-003)
+**Status:** Estável (pós-clarify 2026-04-17)
+**Input:** `briefing.md` + `bmad.md` + `decision_log.md` (D-001, D-002, D-003) + `clarify.md` (C-001, C-002, C-003)
 **Referências:** ADR-002 (stack Python); `harness/README.md §Contratos`; `harness/rollout.md §E1`
 
 ---
@@ -157,6 +157,7 @@ Cada FR rastreia sua origem: `→ D-NNN` (decision log) ou `→ briefing §X.Y`.
 - **FR-015:** Users MUST be able to run in warnings-only mode via `--warnings-only`, which downgrades all `[ERRO]` to `[WARN]` and forces exit code 0 (supports rollout stage E1). → briefing §7.4, `harness/rollout.md §E1`
 - **FR-016:** System MUST skip UTF-8 BOM if present at file start. → Edge Cases
 - **FR-017:** System MUST accept unknown front-matter keys without error in M1 (strict schema validation deferred to M2). → Edge Cases, briefing §9
+- **FR-018:** System MUST emit ANSI color codes in human format output when stdout is a TTY AND `NO_COLOR` env var is unset. When either condition fails, or when `--no-color` flag is passed, color codes MUST be omitted. JSON format MUST never emit color codes. → **C-002**
 
 ### Non-Functional Requirements
 
