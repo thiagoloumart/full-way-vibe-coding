@@ -1,0 +1,21 @@
+# CODEOWNERS — full-way-vibe-coding
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-security/customizing-your-repository/about-code-owners
+#
+# Regra: todo caminho tem um owner responsável por aprovar PRs que o tocam.
+# Até surgirem múltiplos mantenedores, o owner é único.
+
+# Default — tudo o que não cair em regra mais específica abaixo
+* @thiagoloumart
+
+# Constituição — Camada 1 exige escrutínio extra (sempre ADR major bump)
+filosofia.md                       @thiagoloumart
+templates/constituicao.md          @thiagoloumart
+governanca/adr-global.md           @thiagoloumart
+governanca/adrs/                   @thiagoloumart
+governanca/versioning.md           @thiagoloumart
+
+# Harness — mudanças afetam enforcement de todos os módulos futuros
+harness/                           @thiagoloumart
+
+# Domínios — extensões cross-domain
+domains/                           @thiagoloumart
