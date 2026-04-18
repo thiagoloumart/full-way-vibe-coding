@@ -183,6 +183,28 @@ class TestNormalize:
         )
 
 
+class TestStripInlineCode:
+    def test_strip_inline_code_basic(self) -> None:
+        assert la.strip_inline_code("abc `codigo` def") == "abc  def"
+
+    def test_strip_inline_code_multiple(self) -> None:
+        assert la.strip_inline_code("`a` e `b` e `c`") == " e  e "
+
+    def test_strip_inline_code_preserves_newlines(self) -> None:
+        text = "linha 1 `x`\nlinha 2 `y`\nlinha 3"
+        result = la.strip_inline_code(text)
+        assert result.count("\n") == 2
+        assert "`" not in result
+
+    def test_strip_inline_code_ignores_unclosed(self) -> None:
+        # Backtick sem par na mesma linha → preservado (não é inline code válido)
+        assert la.strip_inline_code("abc `def") == "abc `def"
+
+    def test_strip_inline_code_removes_link_in_backticks(self) -> None:
+        """Documentação sobre sintaxe de link não deve virar link real."""
+        assert la.strip_inline_code("Use `[x](./foo.md)` para linkar.") == "Use  para linkar."
+
+
 class TestExtractHeadings:
     def test_extract_headings_all_levels(self) -> None:
         text = "# Título\n## Seção 2\n### Sub 3\n#### Nível 4\n##### L5\n###### L6"

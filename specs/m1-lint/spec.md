@@ -149,7 +149,7 @@ Cada FR rastreia sua origem: `→ D-NNN` (decision log) ou `→ briefing §X.Y`.
 - **FR-007:** System MUST extract internal relative Markdown links matching `\[([^\]]+)\]\(([^)]+\.md)(#[^)]*)?\)` and validate that each target file exists on the filesystem, resolved relative to the artefact being validated. → D-003
 - **FR-008:** System MUST NOT validate link anchors (`#section`) in M1 — only file existence. → briefing §9 non-goals, D-003
 - **FR-009:** System MUST NOT validate external links (`https://…`, `http://…`, `mailto:`). → briefing §9 non-goals
-- **FR-010:** System MUST NOT flag links inside fenced code blocks. → FR-005 consistency
+- **FR-010:** System MUST NOT flag links inside fenced code blocks (```...```) **nor inside inline code spans** (single-backtick ``...``). → FR-005 consistency + drift D-W1A-002
 - **FR-011:** System MUST NOT modify, create, rename or delete any file under validation or anywhere else. → **D-002 (invariante §5.4)**
 - **FR-012:** System MUST exit with code 0 when validation passes; code 1 when any `[ERRO]` is detected; code 2 when the file cannot be read (not found, not Markdown, IO error). → briefing §7.4
 - **FR-013:** System MUST output diagnostics in human-readable format by default: `<file>:<line>: [LEVEL] CODE message`, sorted by line ascending, errors before warnings. → briefing §7.4

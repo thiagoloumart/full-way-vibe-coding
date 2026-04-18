@@ -220,6 +220,26 @@ def validate_frontmatter_fields(
 HEADING_RE = re.compile(r"^(#{1,6})\s+(.+?)\s*$")
 
 
+# Inline code: conteúdo entre pares de backticks na mesma linha (``...``).
+# Usado apenas para links (não afeta extract_headings, pois headings são
+# line-level e raramente aparecem dentro de backticks inline).
+_INLINE_CODE_RE = re.compile(r"`[^`\n]*`")
+
+
+def strip_inline_code(text: str) -> str:
+    """Remove conteúdo entre pares de backticks na mesma linha, preservando
+    as quebras de linha.
+
+    Aplicado **antes de `extract_links`** para evitar falso positivo em
+    exemplos de documentação (ex.: `[x](./foo.md)` em texto explicativo
+    sobre sintaxe Markdown — o link é decorativo, não real).
+
+    Multi-backticks (``` dupla) não são tratados em M1 — raro em Markdown
+    técnico; se surgir caso real, abrir ADR.
+    """
+    return _INLINE_CODE_RE.sub("", text)
+
+
 def strip_code_blocks(text: str) -> str:
     r"""Remove conteúdo dentro de fenced code blocks (```...```) preservando
     número de linhas (substitui por linhas vazias).
@@ -468,7 +488,10 @@ def lint_artefato(path: Path) -> list[Diagnostic]:
         )
 
     # F3: validação de links relativos internos
-    links = extract_links(body_stripped, path)
+    # strip_inline_code antes de extract_links evita falso positivo em exemplos
+    # de documentação dentro de backticks (ex.: `[x](./foo.md)` explicativo).
+    body_for_links = strip_inline_code(body_stripped)
+    links = extract_links(body_for_links, path)
     diags += validate_links(links, arquivo=arquivo)
 
     return diags
