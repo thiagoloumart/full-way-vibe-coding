@@ -200,7 +200,13 @@ Não aplicável — lint é ferramenta CLI sem sistema de papéis.
 
 ### Measurable Outcomes
 
-- **SC-001:** Zero falsos positivos ao rodar em **todos** os `.md` atuais da skill (~70 arquivos) — os artefatos existentes refletem o padrão que o linter deve aceitar. *(→ smoke test manual no fim de W1 track A.)*
+- **SC-001:** Zero falsos positivos ao rodar em **todos os artefatos com front-matter YAML** da skill. Escopo explícito do conjunto lintável em M1:
+  - `templates/*.md` (13 arquivos);
+  - `specs/*/*.md` (artefatos instanciados);
+  - `examples/*/*/*.md` (exemplos canônicos, quando existirem em M2);
+  - `governanca/adrs/ADR-[0-9]*.md` (ADRs instanciados — exclui `ADR-index.md`).
+
+  **Fora do escopo** de lintagem em M1 (documentação livre sem front-matter obrigatório): raiz (`README.md`, `SKILL.md`, `AGENTS.md`, `CONTRIBUTING.md`, `filosofia.md`, `00_ANALISE_ESTRATEGICA.md`), `fases/*.md`, `protocolos/*.md`, `checklists/*.md`, `governanca/{adr-global,metricas,versioning}.md`, `governanca/adrs/ADR-index.md`, `harness/**/*.md`. Estender front-matter para essas pastas é decisão estratégica separada (possível ADR em v1.3). *(→ smoke test manual no fim de W1 track A; discovery automática via `smoke_test.py` em M2.)*
 - **SC-002:** 100% dos defeitos plantados em suite de 7 fixtures (sem front-matter, YAML inválido, campo faltando, tipo errado, seção ausente, nível errado, link quebrado) são detectados pelo lint. *(→ suite `pytest`.)*
 - **SC-003:** Execução <500ms para artefato de 200 linhas no laptop de referência. *(→ test com `time`.)*
 - **SC-004:** Saída JSON passa `jq '.'` sem erro em todas as condições (erro/sem-erro/misto). *(→ test de integração.)*
