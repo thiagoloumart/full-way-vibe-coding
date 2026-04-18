@@ -11,8 +11,8 @@ as 15 fases (0 → 12) do manual operacional.
 | 0 — Recepção | `recepcao.md` | 🟢 Finalizada (2026-04-18) | `w1b/f0-recepcao` |
 | 0.5 — BMAD | `bmad.md` + `decision_log.md` | 🟢 Finalizada (2026-04-18) | `w1b/f0.5-bmad` |
 | 1 — Briefing | `briefing.md` | 🟢 Finalizada (2026-04-18) | `w1b/f1-briefing` |
-| 2 — Spec | `spec.md` | 🟡 Draft (2026-04-18) | `w1b/f2-spec` |
-| 3 — Clarify | `clarify.md` | ⏳ | — |
+| 2 — Spec | `spec.md` | 🟢 Finalizada (2026-04-18) · atualizada pós-Clarify (2026-04-18) | `w1b/f2-spec` + `w1b/f3-clarify` |
+| 3 — Clarify | `clarify.md` | 🟡 Draft (2026-04-18) | `w1b/f3-clarify` |
 | 3.5 — Constituição | `constitution.md` | ⏳ | — |
 | 4 — Plan | `plan.md` | ⏳ | — |
 | 5 — Tasks | `tasks.md` | ⏳ | — |
