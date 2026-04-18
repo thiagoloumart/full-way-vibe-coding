@@ -9,7 +9,7 @@ as 15 fases (0 → 12) do manual operacional.
 | Fase | Artefato | Status | Branch / PR |
 |---|---|---|---|
 | 0 — Recepção | `recepcao.md` | 🟢 Finalizada (2026-04-18) | `w1b/f0-recepcao` |
-| 0.5 — BMAD | `bmad.md` + `decision_log.md` | ⏳ Próxima | — |
+| 0.5 — BMAD | `bmad.md` + `decision_log.md` | 🟡 Draft (2026-04-18) | `w1b/f0.5-bmad` |
 | 1 — Briefing | `briefing.md` | ⏳ | — |
 | 2 — Spec | `spec.md` | ⏳ | — |
 | 3 — Clarify | `clarify.md` | ⏳ | — |
