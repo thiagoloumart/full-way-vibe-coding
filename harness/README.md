@@ -5,16 +5,58 @@
 ## Propósito
 Transformar o protocolo — hoje enforced por convenção e leitura humana — em **verificação mecânica** sem sacrificar a legibilidade.
 
-## Estado atual (v1.1)
+## Estado atual (v1.1 + W1 track A)
 
 | Componente | Estado |
 |---|---|
 | `README.md` (este arquivo) | ✅ |
 | `rollout.md` | ✅ (plano em 3 estágios) |
-| `_audit/` | ✅ (before.tree, inventory.md, progress.md, delta.md, handoff.md em M1.11) |
+| `_audit/` | ✅ (before.tree, inventory.md, progress.md; delta.md + handoff.md em M1.11) |
 | `schemas/` | ⬜ (vazio; M2) |
-| `scripts/` | ⬜ (vazio; M2) |
-| `tests/` | ⬜ (vazio; M2) |
+| `scripts/lint_artefato.py` | ✅ W1 track A (40 testes) — valida front-matter, seções `requer:`, links relativos |
+| `tests/test_lint_artefato.py` | ✅ W1 track A |
+
+---
+
+## Arquivos lintáveis em M1
+
+Nem todo `.md` do repo é artefato SDD. Em M1, o `lint_artefato.py` valida o contrato apenas dos arquivos abaixo. Rodar o lint fora deste escopo gera FRONTMATTER_AUSENTE (falso negativo esperado — esses arquivos não são artefatos).
+
+### ✅ Lintáveis (front-matter obrigatório)
+
+| Padrão | Descrição | Quem alimenta |
+|---|---|---|
+| `templates/*.md` | Templates reutilizáveis de artefatos | editores da skill |
+| `specs/*/*.md` | Artefatos instanciados dentro de módulos/features | autor de um ciclo SDD |
+| `examples/*/*/*.md` | Exemplos canônicos (a partir de M2, v1.2) | retrospective dos ciclos |
+| `governanca/adrs/ADR-[0-9]*.md` | ADRs globais instanciados | fluxo de ADR |
+
+### ❌ Fora do escopo M1 (documentação livre, sem front-matter obrigatório)
+
+| Padrão | Por quê |
+|---|---|
+| Raiz: `README.md`, `SKILL.md`, `AGENTS.md`, `CONTRIBUTING.md`, `filosofia.md`, `00_ANALISE_ESTRATEGICA.md` | Documentação de projeto e entrada — não são artefatos SDD |
+| `fases/*.md` | Guias de como conduzir cada fase — doc livre |
+| `protocolos/*.md` | Regras transversais de conduta — doc livre |
+| `checklists/*.md` | Listas de verificação — doc livre |
+| `governanca/adr-global.md`, `metricas.md`, `versioning.md` | Documentação operacional global |
+| `governanca/adrs/ADR-index.md` | Índice (metadado), não é ADR em si |
+| `harness/**/*.md` | Documentação do próprio harness |
+
+Estender front-matter e lint para qualquer padrão de "fora do escopo" é decisão estratégica separada que exige ADR em v1.3+. Em M2, `smoke_test.py` vai iterar automaticamente nos padrões da tabela "lintáveis".
+
+### Uso manual em M1
+
+```bash
+# Um arquivo específico
+python3 -m harness.scripts.lint_artefato templates/spec.md
+
+# Todos os templates (bash)
+for f in templates/*.md; do python3 -m harness.scripts.lint_artefato "$f"; done
+
+# Todos os ADRs numerados
+for f in governanca/adrs/ADR-[0-9]*.md; do python3 -m harness.scripts.lint_artefato "$f"; done
+```
 
 ## Estado alvo (v1.2)
 
