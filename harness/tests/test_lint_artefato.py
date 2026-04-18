@@ -691,3 +691,77 @@ class TestCLIF3:
         )
         assert code == 1
         assert "\033[" not in out
+
+
+# ---------------------------------------------------------------------------
+# T-014 — mini-testes agregados (edge cases marcados em Fase 6 Analyze tabela 🟡)
+# ---------------------------------------------------------------------------
+
+
+class TestEdgeCasesT014:
+    """Testes adicionais derivados do Problema #3 do Fase 6 Analyze.
+
+    Cobrem 3 edge cases que estavam no spec mas sem teste explícito:
+    - Link relativo que sobe acima da raiz do repo (comportamento: valida existência).
+    - Link URL-encoded com espaço (`%20` → espaço via urllib.unquote).
+    - Chave desconhecida no front-matter em smoke cross-repo (FR-017 consistente).
+    """
+
+    def test_cli_link_above_repo_root(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        """Link que sobe acima da raiz: valida existência; se existe, aceita."""
+        # Cria um arquivo real na raiz do tmp_path e lincamos sub/sub/arquivo.md → ../../..
+        deep = tmp_path / "a" / "b" / "c"
+        deep.mkdir(parents=True)
+        source = deep / "source.md"
+        target = tmp_path / "target.md"
+        target.touch()
+        source.write_text(
+            "---\nartefato: spec\nfase: 2\ndominio: [software]\n"
+            "schema_version: 1\nrequer: []\n---\n\n[t](../../../target.md)\n"
+        )
+        code = la.main([str(source)])
+        captured = capsys.readouterr()
+        assert code == 0
+        assert "OK" in captured.out
+
+    def test_cli_link_url_encoded_resolves(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        """Percent-encoding em path é decodificado; arquivo com espaço real é encontrado."""
+        source = tmp_path / "doc.md"
+        target = tmp_path / "arquivo com espaço.md"
+        target.touch()
+        source.write_text(
+            "---\nartefato: spec\nfase: 2\ndominio: [software]\n"
+            "schema_version: 1\nrequer: []\n---\n\n"
+            "[x](./arquivo%20com%20espa%C3%A7o.md)\n"
+        )
+        code = la.main([str(source)])
+        captured = capsys.readouterr()
+        assert code == 0
+        assert "OK" in captured.out
+
+    def test_cli_unknown_frontmatter_key_in_smoke(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        """Reforço de FR-017: artefato real com chaves extras (ex: bicamada,
+        marcadores_camada como em constituicao.md) passa sem erro."""
+        source = tmp_path / "cross_repo.md"
+        source.write_text(
+            "---\n"
+            "artefato: constituicao\n"
+            "fase: 3.5\n"
+            "dominio: [any]\n"
+            "schema_version: 1\n"
+            "bicamada: true\n"
+            "marcadores_camada:\n"
+            "  camada_1_begin: \"<!-- C1 -->\"\n"
+            "requer: []\n"
+            "---\n\nCorpo.\n"
+        )
+        code = la.main([str(source)])
+        captured = capsys.readouterr()
+        assert code == 0
+        assert "OK" in captured.out
