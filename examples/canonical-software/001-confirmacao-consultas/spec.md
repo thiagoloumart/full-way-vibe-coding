@@ -14,9 +14,9 @@ requer:
 
 **Feature Branch:** `001-confirmacao-consultas`
 **Created:** 2026-04-18
-**Status:** Draft
+**Status:** Pós-Clarify (v2 · 2026-04-18)
 **Input:** User description: "Sistema web para clínicas MPE confirmarem consultas via WhatsApp, reduzindo no-show."
-**Referências:** `briefing.md` v1 · `bmad.md` v1 · `decision_log.md` D-001/D-002/D-003
+**Referências:** `briefing.md` v1 · `bmad.md` v1 · `decision_log.md` D-001/D-002/D-003 · `clarify.md` C-001 a C-006
 
 ---
 
@@ -95,8 +95,9 @@ O admin da clínica acessa uma tela de configuração e define a janela de antec
 - **Consulta é cancelada pelo atendente depois do lembrete já ter sido enviado** → sistema envia mensagem de cancelamento ao paciente informando que não precisa mais responder.
 - **Admin altera janela no meio do dia** → ver Acceptance Scenario 3 da User Story 4; consultas com job já agendado mantêm a janela original.
 - **Paciente sem WhatsApp ativo** (descoberto só ao tentar enviar ou depois) → fallback é o fluxo manual do atendente (User Story 3); sistema sinaliza `sem-canal` na consulta para o atendente atuar.
-- **Paciente pede deleção LGPD** (art. 18) → `[DECISÃO HUMANA: política de deleção]` — comportamento exato depende de Clarify C-003. Em alta: histórico preservado com dados de identificação anonimizados; preservar ou não o histórico de eventos é regra sensível.
-- **Horário de envio cai em janela inadequada** (ex: 3h da manhã) → sistema respeita janela operacional permitida (ex: 8h–20h BR) e posterga o envio para a próxima janela válida. **Janela operacional exata** `[NEEDS CLARIFICATION: C-004]`.
+- **Paciente pede deleção LGPD** (art. 18) → atendente com flag `is_admin` aciona "Anonimizar paciente"; sistema sobrescreve PII (nome vira `paciente-excluido-<hash>`, telefone e e-mail viram null) preservando integridade referencial de eventos do histórico (conforme FR-033 e C-003).
+- **Horário de envio cai em janela inadequada** (ex: 3h da manhã) → sistema respeita janela operacional **08h–20h horário de Brasília** (configurável via FR-028) e posterga o envio para o próximo 08h; se o adiamento ultrapassar o próprio horário da consulta, envio é cancelado e a consulta é sinalizada no painel para ação manual (conforme FR-010 e C-004).
+- **Atendente corrige compareceu/no-show marcado por engano** → sistema exige ator, motivo textual obrigatório e novo status; registra evento `correcao` com `ref_evento = <id original>`; evento original permanece no histórico (conforme FR-017 e C-005).
 - **Fuso horário do paciente difere do fuso da clínica** — fora do MVP; assume-se fuso único (BR). `[RISCO ASSUMIDO]` conforme `decision_log.md D-003`.
 
 ---
@@ -121,8 +122,8 @@ Cada FR abaixo tem **origem rastreável** — `D-NNN` do `decision_log.md` ou se
 - **FR-007:** System MUST send the lembrete via WhatsApp as the single automatic channel; nenhum outro canal automático é usado no MVP. — *origem: briefing §6 + §9 · D-002*
 - **FR-008:** System MUST include, in each lembrete, identificação da clínica, identificação do médico, data e hora da consulta, e três botões interativos rotulados "Confirmar", "Cancelar", "Reagendar". — *origem: briefing §7.1 ações · bmad.md §2.2 passo 2*
 - **FR-009:** System MUST garantir idempotência do disparo: no máximo um lembrete enviado por Consulta por janela. Acionamentos duplicados do job NÃO devem gerar mensagem duplicada para o paciente. — *origem: briefing §7.1 regras + edge case*
-- **FR-010:** System MUST respect a janela operacional de envio (horário do dia permitido) — envios que cairiam fora da janela são postergados para a próxima janela válida. A **janela operacional exata** [NEEDS CLARIFICATION: C-004] — padrão sugerido 08h–20h BR `[INFERÊNCIA]`. — *origem: briefing §7.1 regras · bmad.md §2.4*
-- **FR-011:** System MUST retry envios falhados por erro transitório do provedor com backoff exponencial, até um limite máximo de tentativas `[NEEDS CLARIFICATION: limite de tentativas e intervalo — C-004 estendido]`, e marcar como `falha-envio` após o limite. — *origem: edge case + bmad.md §2.4*
+- **FR-010:** System MUST respect a janela operacional de envio **08h–20h horário de Brasília** (padrão; configurável por admin via FR-028). Envios que cairiam fora da janela são postergados para o próximo 08h; se o adiamento ultrapassar o horário da própria consulta, o envio é cancelado e a consulta é sinalizada no painel para ação manual do atendente. — *origem: briefing §7.1 regras · bmad.md §2.4 · C-004*
+- **FR-011:** System MUST retry envios falhados por erro transitório do provedor com **backoff exponencial** — até **3 tentativas** nos intervalos **5 min / 15 min / 45 min**. Esgotadas as tentativas, o lembrete é marcado como `falha-envio` e o atendente recebe alerta no painel. — *origem: edge case + bmad.md §2.4 · C-004*
 - **FR-012:** System MUST NÃO retentar envios falhados por erro definitivo (número inválido); tais envios são marcados imediatamente como `numero-invalido` e visibilizados no painel para ação manual. — *origem: edge case*
 
 #### Processamento de resposta (User Story 1)
@@ -134,8 +135,8 @@ Cada FR abaixo tem **origem rastreável** — `D-NNN` do `decision_log.md` ou se
 
 #### Histórico e auditoria (regra §5.4)
 
-- **FR-017:** [DECISÃO HUMANA: histórico imutável — C-005] System MUST registrar todo evento relevante (lembrete agendado, enviado, falhou, resposta recebida, mudança de status, intervenção manual) em um histórico **imutável**. Correções legítimas (ex: atendente marcou no-show por engano) são registradas como **novo evento sobreposto**, sem editar eventos anteriores. — *origem: briefing §7.1 regras + §5.4 · bmad.md §2.6*
-- **FR-018:** [DECISÃO HUMANA: escopo de auditoria — C-006] Each evento registrado MUST conter, no mínimo: timestamp, canal (`whatsapp` | `manual-pelo-painel` | `sistema-automacao`), ator identificado (paciente/atendente/sistema), identificador externo do provedor quando aplicável. Campos adicionais (IP, user-agent) ficam para Clarify. — *origem: briefing §7.1 regras + §5.4 · bmad.md §2.6*
+- **FR-017:** System MUST registrar todo evento relevante (lembrete agendado, enviado, falhou, resposta recebida, mudança de status, intervenção manual, correção) em um histórico **imutável**. Correções legítimas (ex: atendente marcou no-show por engano) são registradas como **novo evento do tipo `correcao`** com (a) referência ao `id` do evento corrigido, (b) novo status resultante, (c) motivo textual obrigatório. O evento original **nunca** é editado ou removido; a derivação do status da Consulta passa a refletir a correção. — *origem: briefing §7.1 regras + §5.4 · bmad.md §2.6 · C-005*
+- **FR-018:** Each evento registrado MUST conter: `timestamp`, `canal` (`whatsapp` | `manual-pelo-painel` | `sistema-automacao`), `ator_tipo` (paciente | atendente | sistema-automacao), `ator_id` (quando aplicável), `id_externo_provedor` (quando canal = whatsapp), `ip` (quando disponível), `motivo` (obrigatório em eventos do tipo `correcao`; opcional nos demais). — *origem: briefing §7.1 regras + §5.4 · bmad.md §2.6 · C-006*
 - **FR-019:** System MUST allow an Atendente to consult the complete histórico de uma Consulta em ordem cronológica. — *origem: briefing §7.1 ações · User Story 3 scenario 4*
 
 #### Painel do atendente (User Story 2)
@@ -157,32 +158,33 @@ Cada FR abaixo tem **origem rastreável** — `D-NNN` do `decision_log.md` ou se
 
 #### Configuração (User Story 4)
 
-- **FR-028:** System MUST permitir a um Admin da clínica definir a janela de envio de lembrete (em horas antes do horário da Consulta) e a janela de silêncio (em horas antes do horário a partir da qual o status muda para `sem-resposta`). — *origem: briefing §7.1 regras · §5 perfil Admin · User Story 4*
+- **FR-028:** System MUST permitir a um atendente com flag `is_admin` definir: (a) janela de envio de lembrete (em horas antes do horário da Consulta) — **padrão 24h**; (b) janela de silêncio (em horas antes do horário a partir da qual o status muda para `sem-resposta`) — **padrão 4h**; (c) horário operacional de envio — **padrão 08h–20h BRT**; (d) política de retry — **padrão 3 tentativas com backoff 5/15/45 min**. — *origem: briefing §7.1 regras · §5 perfil Admin · User Story 4 · C-002 · C-004*
 - **FR-029:** System MUST NÃO aplicar alterações de configuração a Consultas já criadas com o lembrete já agendado; a configuração vigente é a do **momento da criação** da Consulta. — *origem: User Story 4 scenario 3 · edge case*
 
 #### Permissões e autenticação
 
-- **FR-030:** [DECISÃO HUMANA: matriz de permissões — C-002] System MUST autenticar Atendente, Médico e Admin antes de qualquer ação no painel web. **Paciente NÃO loga** — interage apenas via WhatsApp. — *origem: briefing §5 + §9*
-- **FR-031:** [DECISÃO HUMANA: matriz de permissões — C-002] System MUST aplicar a matriz de permissões por perfil: Atendente opera o dia a dia (cadastros, consultas, intervenções manuais); Médico tem acesso somente-leitura à sua própria agenda (+ marcação de no-show opcional); Admin pode configurar janelas e cadastrar médicos. — *origem: briefing §5*
-- **FR-032:** [DECISÃO HUMANA: visibilidade — D-003] System MUST garantir isolamento total por clínica (MVP single-tenant — 1 clínica por instalação); não há consulta ou paciente visível entre clínicas diferentes. — *origem: decision_log D-003 · briefing §5 + §9*
+- **FR-030:** System MUST autenticar **Atendente** (com ou sem flag `is_admin`) e **Médico** antes de qualquer ação no painel web. **Paciente NÃO loga** — interage apenas via WhatsApp ou via link seguro recebido nele. — *origem: briefing §5 + §9 · C-002*
+- **FR-031:** System MUST aplicar a matriz de permissões por perfil conforme **C-002** (tabela §Permissões): (a) **Atendente** opera dia a dia (cadastros de paciente e consulta, intervenções manuais, marcação compareceu/no-show, consulta do histórico); (b) **Atendente com flag `is_admin`** adiciona cadastro de médicos e configuração de janelas (FR-028); (c) **Médico** tem acesso somente-leitura à sua própria agenda, com marcação opcional de compareceu/no-show nas próprias consultas; (d) **Paciente** responde via WhatsApp e consulta detalhes da própria consulta via link seguro. — *origem: briefing §5 · C-002*
+- **FR-032:** System MUST garantir isolamento total por clínica (MVP single-tenant — 1 clínica por instalação); não há consulta ou paciente visível entre clínicas diferentes. — *origem: decision_log D-003 · briefing §5 + §9*
 
 #### LGPD e privacidade
 
-- **FR-033:** [DECISÃO HUMANA: política de deleção — C-003] System MUST atender solicitação de deleção de Paciente conforme LGPD art. 18, preservando o histórico imutável de Consultas por meio de **anonimização** dos dados de identificação (nome, número de WhatsApp, e-mail). Comportamento exato `[NEEDS CLARIFICATION: C-003]`. — *origem: briefing §9 + §10 · bmad.md §2.6*
+- **FR-033:** System MUST atender solicitação de deleção de Paciente conforme LGPD art. 18 via **anonimização atômica**: atendente com flag `is_admin` aciona "Anonimizar paciente"; sistema sobrescreve PII (`nome → "paciente-excluido-<hash-curto>"`, `telefone → null`, `email → null`) preservando integridade referencial de Consulta / Lembrete / Confirmação / Notificação. Um evento `anonimizacao` é registrado no histórico imutável com `ator = atendente-admin` e `motivo = "LGPD art. 18 — solicitação paciente"`. — *origem: briefing §9 + §10 · bmad.md §2.6 · C-003*
 - **FR-034:** System MUST NÃO expor dados de Paciente, Médico ou Consulta a usuários não autenticados (exceto via link seguro enviado no próprio WhatsApp do paciente, restrito à consulta dele). — *origem: briefing §5 perfil Paciente + §9*
 
 ### Non-Functional Requirements
 
 - **NFR-001 — Performance.** O processamento de resposta do paciente (do recebimento pelo provedor até a atualização do status visível no painel) MUST ser concluído em mediano < 10 segundos no perfil de carga MPE típico (< 100 consultas/dia por clínica). `[INFERÊNCIA]` — alvo validável em piloto.
 - **NFR-002 — Disponibilidade do envio.** O sistema MUST processar, com sucesso, ≥ 99% dos disparos de lembrete agendados dentro da janela operacional válida (excluindo erros definitivos de número inválido). `[INFERÊNCIA]` — alvo a validar em piloto.
-- **NFR-003 — Privacidade.** Dados sensíveis do Paciente (número de WhatsApp, nome, e-mail) MUST ser armazenados com criptografia-em-repouso. Logs operacionais NÃO devem conter payload completo de mensagens nem número de WhatsApp em claro.
-- **NFR-004 — Auditoria.** Eventos do histórico imutável (FR-017/FR-018) MUST ser persistidos e recuperáveis por no mínimo 5 anos `[NEEDS CLARIFICATION: retenção — C-006]` — alinhado com boas práticas de registro clínico brasileiro.
+- **NFR-003 — Privacidade.** Dados PII do Paciente (nome, número de WhatsApp, e-mail) MUST ser armazenados em campos passíveis de **anonimização atômica** (UPDATE único sem cascade delete) e com criptografia-em-repouso. Logs operacionais NÃO devem conter payload completo de mensagens nem número de WhatsApp em claro.
+- **NFR-004 — Auditoria.** Eventos do histórico imutável (FR-017/FR-018) MUST ser persistidos por **5 anos** a partir da data do evento. Após 5 anos, o sistema anonimiza automaticamente campos de PII do evento (`ator_id` e `ip` viram null) mas preserva o evento para métrica estatística indefinidamente. Origem: C-006.
 - **NFR-005 — Responsividade.** O painel do atendente MUST ser utilizável em telas de 13"+ (desktop/notebook) e em celulares 5.5"+ para consulta rápida pelo médico.
 - **NFR-006 — Idempotência de integração.** Callbacks duplicados do provedor de WhatsApp (mesma mensagem processada 2x) MUST ser detectados e descartados sem gerar eventos duplicados.
+- **NFR-007 — Custo operacional.** O custo médio mensal por notificação enviada MUST ≤ **R$ 0,20** (incluindo taxas do provedor de WhatsApp). Excesso ao teto aciona alerta de revisão de provedor; ultrapassar **R$ 0,30** dispara o critério de invalidação de D-002 (revisão estratégica do Caminho D). Origem: C-001.
 
 ### Key Entities
 
-- **Consulta** — unidade central do módulo. Representa o compromisso de um Paciente com um Médico em uma data/hora. Possui um status enumerado (`agendada`, `lembrete-enviado`, `confirmada`, `cancelada-pelo-paciente`, `cancelada-pela-clinica`, `reagendamento-solicitado`, `reagendada`, `sem-resposta`, `compareceu`, `no-show`, `falha-envio`, `numero-invalido`). Derivação do status vem do último evento aplicável registrado no histórico.
+- **Consulta** — unidade central do módulo. Representa o compromisso de um Paciente com um Médico em uma data/hora. Possui um status enumerado (`agendada`, `lembrete-enviado`, `confirmada`, `cancelada-pelo-paciente`, `cancelada-pela-clinica`, `reagendamento-solicitado`, `reagendada`, `sem-resposta`, `compareceu`, `no-show`, `falha-envio`, `numero-invalido`). Derivação do status vem do último evento aplicável registrado no histórico, aplicando **eventos `correcao`** por cima dos eventos por eles referenciados (ver FR-017 + C-005).
 - **Paciente** — quem agendou a consulta. Atributos-chave no MVP: nome, número de WhatsApp, e-mail opcional. Não tem credenciais no sistema (não loga).
 - **Médico** — profissional que atende. Atributos-chave: nome, especialidade. Pode ter múltiplas consultas no mesmo dia.
 - **Lembrete** — evento de intenção de envio. Agendado no momento da criação da Consulta; evolui entre `agendado`, `enviado`, `falha-envio` (retry) ou `numero-invalido` (terminal).
@@ -192,12 +194,25 @@ Cada FR abaixo tem **origem rastreável** — `D-NNN` do `decision_log.md` ou se
 
 ### Permissões
 
-| Perfil | Ações permitidas | Ações bloqueadas |
-|---|---|---|
-| **Atendente** | Cadastrar/editar paciente e médico · criar/editar/cancelar consulta · confirmar/reagendar/cancelar em nome do paciente · marcar compareceu/no-show · ver painel do dia · consultar histórico de qualquer consulta da clínica · receber alerta de "sem resposta". | Configurar janelas de lembrete (exclusivo Admin) `[DECISÃO HUMANA: C-002]` · ver/operar dados de outras clínicas (bloqueado por D-003). |
-| **Médico** | Ver própria agenda do dia · ver status de confirmação das próprias consultas · marcar compareceu/no-show nas próprias consultas. | Criar/editar/cancelar consultas de terceiros · operar painel operacional de outras clínicas · editar cadastro de paciente. |
-| **Paciente** | Responder ao lembrete via botões do WhatsApp · consultar detalhes da própria consulta via link seguro recebido. | Criar consulta · ver consultas de outros pacientes · logar no painel. |
-| **Admin da clínica** | Tudo que o Atendente pode `[DECISÃO HUMANA: C-002 — Admin = Atendente + config, ou papel separado?]` · configurar janela de lembrete e janela de silêncio · cadastrar médicos (se diferenciar de Atendente). | Acessar dados de outras clínicas (bloqueado por D-003). |
+Conforme **C-002**: 3 perfis funcionais distintos (Paciente, Médico, Atendente) + flag `is_admin` no Atendente elevando privilégios de configuração.
+
+| Ação | Paciente | Médico | Atendente | Atendente+`is_admin` |
+|---|:-:|:-:|:-:|:-:|
+| Logar no painel web | ❌ | ✅ | ✅ | ✅ |
+| Responder lembrete via WhatsApp | ✅ | — | — | — |
+| Consultar detalhes da própria consulta via link seguro | ✅ | — | — | — |
+| Cadastrar/editar paciente | ❌ | ❌ | ✅ | ✅ |
+| Cadastrar/editar médico | ❌ | ❌ | ❌ | ✅ |
+| Criar/editar/cancelar consulta | ❌ | ❌ | ✅ | ✅ |
+| Ver painel do dia (todas as consultas da clínica) | ❌ | ❌ | ✅ | ✅ |
+| Ver própria agenda (só próprias consultas) | ❌ | ✅ | — | — |
+| Confirmar/reagendar/cancelar em nome do paciente | ❌ | ❌ | ✅ | ✅ |
+| Marcar compareceu/no-show | ❌ | ✅ (próprias) | ✅ | ✅ |
+| Corrigir evento de compareceu/no-show com motivo | ❌ | ❌ | ✅ | ✅ |
+| Consultar histórico completo de uma consulta | ❌ | ✅ (próprias) | ✅ | ✅ |
+| Configurar janela de lembrete / silêncio / janela operacional / retry | ❌ | ❌ | ❌ | ✅ |
+| Anonimizar paciente (LGPD art. 18) | ❌ | ❌ | ❌ | ✅ |
+| Acessar dados de outra clínica | ❌ | ❌ | ❌ | ❌ (bloqueado por D-003) |
 
 ### Estados de erro previsíveis
 
@@ -243,23 +258,25 @@ Referência cruzada com `briefing.md §9`. Nesta spec:
 - **Encaixe, overbooking, bloqueios por feriado/ausência** — Agendamento é scaffolding mínimo; funcionalidades avançadas fora do MVP.
 - **Prontuário, histórico clínico, integração com plano de saúde** — fora do escopo do módulo.
 - **Fuso horário múltiplo** — MVP assume fuso único BR.
-- **Onboarding autônomo da clínica** — assinatura e setup envolvem contato humano `[NEEDS CLARIFICATION]`; automação de onboarding fora do MVP.
+- **Onboarding autônomo da clínica** — assinatura e setup envolvem contato humano no MVP (decisão comercial do SaaS, fora do escopo do módulo); automação de onboarding fica para ciclo futuro.
+- **Trial gratuito** — decisão comercial fora do escopo técnico do módulo; quando for decidido pelo produto, não afeta FRs do módulo de confirmação.
 
 ---
 
-## Gate de saída da Fase 2 (`fases/02_SPEC.md` + `checklists/qualidade-spec.md`)
+## Gate pós-Clarify (`fases/03_CLARIFY.md` + `checklists/qualidade-spec.md`)
 
+- [x] **Zero marcadores abertos na spec**: nenhum `[NEEDS CLARIFICATION]` residual; nenhum `[DECISÃO HUMANA]` sem decisão aplicada; `[INFERÊNCIA]` remanescentes apenas em metas de SC (recalibradas em retrospective).
 - [x] Todas as seções do template preenchidas (User Scenarios · Requirements · Success Criteria · Out of Scope).
 - [x] Zero regras ditadas em modo "como fazer" — nenhum nome de framework/ORM/banco/SDK.
-- [x] Cada FR é mensurável e verifica-se por cenário Given/When/Then (diretos das User Stories ou derivados).
+- [x] Cada FR é mensurável e verifica-se por cenário Given/When/Then.
 - [x] Cada User Story tem prioridade P1..P4, Independent Test explícito e ≥ 1 cenário Given/When/Then.
-- [x] Edge cases mapeados (12 itens) — cobrem provedor indisponível, número inválido, template reprovado, resposta texto livre, múltiplas respostas, idempotência, cancelamento tardio, alteração de config, paciente sem WhatsApp, deleção LGPD, janela operacional inadequada, fuso.
-- [x] Permissões por papel descritas (4 perfis) com `[DECISÃO HUMANA: C-002]` nos pontos sensíveis.
-- [x] Key Entities definidas (7 entidades) sem tipos técnicos.
-- [x] Success Criteria mensuráveis (8 SC) tecnologia-agnósticos.
-- [x] Out of Scope explícito (11 itens) cruzando com briefing §9.
-- [x] **Rastreabilidade completa**: cada FR (001 a 034) referencia sua origem — `D-NNN` ou seção do briefing/bmad. Nenhum FR órfão.
-- [x] **Coerência com decision_log**: nenhum FR contradiz D-001/D-002/D-003. Validação cruzada: FR-007 implementa D-002; FR-032 implementa D-003; FR-017/FR-018/FR-033 preservam regras §5.4 com `[DECISÃO HUMANA]` apontando para Clarify.
-- [ ] **Validação humana** — pendente; ocorre via merge deste PR.
+- [x] Edge cases mapeados (13 itens) — todos consolidados pós-Clarify.
+- [x] Permissões detalhadas conforme **C-002** (matriz por ação × perfil).
+- [x] Key Entities definidas (7 entidades) sem tipos técnicos; evento `correcao` integrado conforme C-005.
+- [x] Success Criteria mensuráveis (8 SC) tecnologia-agnósticos; alvos `[INFERÊNCIA]` recalibráveis em retrospective pós-piloto.
+- [x] Out of Scope explícito (12 itens) cruzando com briefing §9.
+- [x] **Rastreabilidade completa**: cada FR (001 a 034) + cada NFR (001 a 007) referencia sua origem — `D-NNN`, `C-NNN` ou seção do briefing/bmad. Nenhum FR/NFR órfão.
+- [x] **Coerência com decision_log + clarify**: FR-007 implementa D-002; FR-032 implementa D-003; FR-010/011/028 implementam C-004; FR-017 implementa C-005; FR-018 + NFR-004 implementam C-006; FR-030/031 + §Permissões implementam C-002; FR-033 + NFR-003 implementam C-003; NFR-007 implementa C-001.
+- [ ] **Validação humana** — pendente; ocorre via merge do PR de Fase 3 Clarify.
 
-**Veredicto do Arquiteto:** 🟢 draft fechado. Próxima fase: Fase 3 Clarify (`clarify.md`) — resolve os 6 `[NEEDS CLARIFICATION]`/`[DECISÃO HUMANA]` e as ambiguidades pendentes (C-001 a C-006 + retenção + limite de retry + janela operacional) com decisão humana explícita para cada.
+**Veredicto do Arquiteto:** 🟢 spec estável pós-Clarify. Próxima fase: **Fase 3.5 Constituição** (`constitution.md`) — declara padrões invariantes (camadas 1: engenharia; 2: stack; 3: produto) que Plan e Implement herdam sem redecidir.
