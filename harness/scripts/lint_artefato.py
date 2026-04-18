@@ -13,9 +13,11 @@ Invariantes (ver constitution.md Camada 1):
 from __future__ import annotations
 
 import argparse
+import json
+import os
 import re
 import sys
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Literal
 from urllib.parse import unquote
@@ -473,28 +475,108 @@ def lint_artefato(path: Path) -> list[Diagnostic]:
 
 
 # ---------------------------------------------------------------------------
+# Formatação de output (F3)
+# ---------------------------------------------------------------------------
+
+
+# ANSI color codes — aplicados inline; mantém `pyyaml` como única dep externa.
+_ANSI_RESET = "\033[0m"
+_ANSI_BOLD = "\033[1m"
+_ANSI_COLOR: dict[str, str] = {
+    "ERRO": "\033[31m",   # vermelho
+    "WARN": "\033[33m",   # amarelo
+    "INFO": "\033[36m",   # ciano
+}
+
+
+def supports_color(stream: Any = None) -> bool:
+    """Decide se o stream aceita ANSI colors.
+
+    Regra (FR-018): habilita cor se **todas** verdadeiras:
+    - `NO_COLOR` env var ausente (convenção https://no-color.org/).
+    - stream é TTY (`isatty()` True).
+
+    `stream` default é `sys.stdout`. Passar explicitamente facilita testes.
+    """
+    if "NO_COLOR" in os.environ:
+        return False
+    if stream is None:
+        stream = sys.stdout
+    isatty = getattr(stream, "isatty", None)
+    return bool(isatty and isatty())
+
+
+_NIVEL_ORDER: dict[str, int] = {"ERRO": 0, "WARN": 1, "INFO": 2}
+
+
+def _sort_diags(diags: list[Diagnostic]) -> list[Diagnostic]:
+    """Ordena diagnósticos: erros antes de warnings, então por linha ascendente."""
+    return sorted(diags, key=lambda d: (_NIVEL_ORDER.get(d.nivel, 99), d.linha))
+
+
+def format_human(diags: list[Diagnostic], *, use_color: bool = False) -> str:
+    """Formata diagnósticos para leitura humana.
+
+    Formato: `<arquivo>:<linha>: [NIVEL] CODIGO mensagem`.
+    Ordenação: erros antes de warnings, linha ascendente dentro de cada grupo.
+    Retorna `"OK"` se a lista estiver vazia (sem cor).
+    """
+    if not diags:
+        return "OK"
+
+    lines: list[str] = []
+    for d in _sort_diags(diags):
+        if use_color:
+            cor_nivel = _ANSI_COLOR.get(d.nivel, "")
+            linha = (
+                f"{d.arquivo}:{d.linha}: "
+                f"{cor_nivel}[{d.nivel}]{_ANSI_RESET} "
+                f"{_ANSI_BOLD}{d.codigo}{_ANSI_RESET} {d.mensagem}"
+            )
+        else:
+            linha = f"{d.arquivo}:{d.linha}: [{d.nivel}] {d.codigo} {d.mensagem}"
+        lines.append(linha)
+    return "\n".join(lines)
+
+
+def format_json(diags: list[Diagnostic]) -> str:
+    """Formata diagnósticos como array JSON estável.
+
+    Chaves estáveis (contrato Camada 1 §10): arquivo, linha, nivel, codigo, mensagem.
+    `ensure_ascii=False` preserva UTF-8 nas mensagens em português.
+    """
+    return json.dumps(
+        [asdict(d) for d in _sort_diags(diags)],
+        ensure_ascii=False,
+    )
+
+
+# ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
 
 
-def _format_human(diags: list[Diagnostic]) -> str:
-    """Formata diagnósticos para humanos (sem cor — cor vem em F3 / T-011)."""
-    if not diags:
-        return "OK"
-    # Ordenar: erros antes de warnings, então por linha crescente
-    order = {"ERRO": 0, "WARN": 1, "INFO": 2}
-    ordered = sorted(diags, key=lambda d: (order.get(d.nivel, 99), d.linha))
-    return "\n".join(
-        f"{d.arquivo}:{d.linha}: [{d.nivel}] {d.codigo} {d.mensagem}"
-        for d in ordered
-    )
+def _downgrade_to_warnings(diags: list[Diagnostic]) -> list[Diagnostic]:
+    """Transforma todos os ERRO em WARN (FR-015, modo --warnings-only para E1)."""
+    return [
+        Diagnostic(
+            arquivo=d.arquivo,
+            linha=d.linha,
+            nivel="WARN" if d.nivel == "ERRO" else d.nivel,
+            codigo=d.codigo,
+            mensagem=d.mensagem,
+        )
+        for d in diags
+    ]
 
 
 def main(argv: list[str] | None = None) -> int:
     """Entry point do CLI. Retorna código de saída (0=OK, 1=lint error, 2=IO error).
 
-    Flags `--format`, `--warnings-only`, `--no-color` são reservadas; comportamento
-    completo é implementado em F3 (T-011, T-012).
+    Flags:
+    - `--format {human,json}`: formato de saída (default human).
+    - `--warnings-only`: trata erros como warnings e força exit 0 (rollout E1).
+    - `--no-color`: desabilita cor ANSI na saída humana.
     """
     parser = argparse.ArgumentParser(
         prog="lint-artefato",
@@ -505,17 +587,17 @@ def main(argv: list[str] | None = None) -> int:
         "--format",
         choices=("human", "json"),
         default="human",
-        help="Formato de saída (default: human). JSON em T-011.",
+        help="Formato de saída (default: human).",
     )
     parser.add_argument(
         "--warnings-only",
         action="store_true",
-        help="Trata erros como warnings e força exit 0 (rollout E1). T-012.",
+        help="Trata erros como warnings e força exit 0 (rollout E1).",
     )
     parser.add_argument(
         "--no-color",
         action="store_true",
-        help="Desabilita cor ANSI na saída humana. T-011.",
+        help="Desabilita cor ANSI na saída humana.",
     )
 
     args = parser.parse_args(argv)
@@ -529,10 +611,25 @@ def main(argv: list[str] | None = None) -> int:
         print(str(exc), file=sys.stderr)
         return 2
 
-    output = _format_human(diags)
+    # FR-015: --warnings-only degrada ERRO → WARN e força exit 0.
+    if args.warnings_only:
+        diags = _downgrade_to_warnings(diags)
+
+    # FR-013 / FR-014 / FR-018
+    if args.format == "json":
+        output = format_json(diags)
+    else:
+        use_color = (not args.no_color) and supports_color(sys.stdout)
+        output = format_human(diags, use_color=use_color)
     print(output)
 
-    return 0 if not diags else 1
+    if args.warnings_only:
+        return 0
+
+    # Exit 1 se houver qualquer ERRO; 0 caso contrário (diags com apenas WARN/INFO
+    # não bloqueiam — comportamento razoável que F3 formaliza).
+    has_error = any(d.nivel == "ERRO" for d in diags)
+    return 1 if has_error else 0
 
 
 def cli_entry() -> None:

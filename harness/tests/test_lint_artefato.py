@@ -434,3 +434,238 @@ class TestCLIF2Sections:
         code, out, _ = self._run(fixtures_dir / "section_extra_whitespace.md", capsys)
         assert code == 0
         assert "OK" in out
+
+
+# ---------------------------------------------------------------------------
+# T-011 — format_human (com cor), format_json, supports_color (F3 unit)
+# ---------------------------------------------------------------------------
+
+
+class TestSupportsColor:
+    def test_supports_color_no_color_env(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setenv("NO_COLOR", "1")
+        # Stream "isatty=True" ainda assim retorna False quando NO_COLOR setado
+        class FakeTTY:
+            def isatty(self) -> bool:
+                return True
+
+        assert la.supports_color(FakeTTY()) is False
+
+    def test_supports_color_non_tty(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.delenv("NO_COLOR", raising=False)
+        class NonTTY:
+            def isatty(self) -> bool:
+                return False
+
+        assert la.supports_color(NonTTY()) is False
+
+    def test_supports_color_tty_without_no_color(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.delenv("NO_COLOR", raising=False)
+        class TTY:
+            def isatty(self) -> bool:
+                return True
+
+        assert la.supports_color(TTY()) is True
+
+
+class TestFormatHuman:
+    def _mk(self, arquivo: str, linha: int, nivel: str, codigo: str) -> "la.Diagnostic":
+        return la.Diagnostic(
+            arquivo=arquivo, linha=linha, nivel=nivel,  # type: ignore[arg-type]
+            codigo=codigo, mensagem="msg",
+        )
+
+    def test_format_human_empty_returns_ok(self) -> None:
+        assert la.format_human([]) == "OK"
+
+    def test_format_human_ordering_by_line(self) -> None:
+        diags = [
+            self._mk("a.md", 10, "ERRO", "X"),
+            self._mk("a.md", 2, "ERRO", "Y"),
+            self._mk("a.md", 5, "ERRO", "Z"),
+        ]
+        out = la.format_human(diags)
+        # ordem por linha ascendente: 2 → 5 → 10
+        linhas = out.split("\n")
+        assert linhas[0].startswith("a.md:2:")
+        assert linhas[1].startswith("a.md:5:")
+        assert linhas[2].startswith("a.md:10:")
+
+    def test_format_human_errors_before_warnings(self) -> None:
+        diags = [
+            self._mk("a.md", 2, "WARN", "W"),
+            self._mk("a.md", 10, "ERRO", "E"),
+        ]
+        out = la.format_human(diags)
+        linhas = out.split("\n")
+        assert "[ERRO]" in linhas[0]
+        assert "[WARN]" in linhas[1]
+
+    def test_format_human_without_color(self) -> None:
+        diags = [self._mk("a.md", 1, "ERRO", "X")]
+        out = la.format_human(diags, use_color=False)
+        assert "\033[" not in out
+
+    def test_format_human_with_color(self) -> None:
+        diags = [self._mk("a.md", 1, "ERRO", "X")]
+        out = la.format_human(diags, use_color=True)
+        assert "\033[31m" in out  # vermelho para ERRO
+        assert "\033[0m" in out   # reset
+
+
+class TestFormatJson:
+    def test_format_json_empty(self) -> None:
+        assert la.format_json([]) == "[]"
+
+    def test_format_json_valid_and_parseable(self) -> None:
+        import json as _json
+        diags = [
+            la.Diagnostic(
+                arquivo="a.md", linha=3, nivel="ERRO",
+                codigo="X", mensagem="msg com acento",
+            ),
+        ]
+        out = la.format_json(diags)
+        data = _json.loads(out)
+        assert isinstance(data, list)
+        assert len(data) == 1
+        assert data[0] == {
+            "arquivo": "a.md",
+            "linha": 3,
+            "nivel": "ERRO",
+            "codigo": "X",
+            "mensagem": "msg com acento",
+        }
+
+    def test_format_json_preserves_utf8(self) -> None:
+        diags = [
+            la.Diagnostic(
+                arquivo="a.md", linha=1, nivel="ERRO",
+                codigo="X", mensagem="decisão — registrada",
+            ),
+        ]
+        out = la.format_json(diags)
+        # ensure_ascii=False preserva os caracteres
+        assert "decisão" in out
+        assert "—" in out
+
+
+# ---------------------------------------------------------------------------
+# T-012 — CLI integração F3 completa (flags + links + format + warnings-only)
+# ---------------------------------------------------------------------------
+
+
+class TestCLIF3:
+    def _run(
+        self,
+        args: list[str],
+        capsys: pytest.CaptureFixture[str],
+    ) -> tuple[int, str, str]:
+        code = la.main(args)
+        captured = capsys.readouterr()
+        return code, captured.out, captured.err
+
+    def test_cli_link_ok(
+        self, fixtures_dir: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        code, out, _ = self._run([str(fixtures_dir / "links_ok.md")], capsys)
+        assert code == 0
+        assert "OK" in out
+
+    def test_cli_link_broken(
+        self, fixtures_dir: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        code, out, _ = self._run([str(fixtures_dir / "link_broken.md")], capsys)
+        assert code == 1
+        assert "LINK_QUEBRADO" in out
+
+    def test_cli_link_external_ok(
+        self, fixtures_dir: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        code, out, _ = self._run([str(fixtures_dir / "link_external.md")], capsys)
+        assert code == 0
+
+    def test_cli_link_with_anchor_ok(
+        self, fixtures_dir: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        code, out, _ = self._run([str(fixtures_dir / "link_with_anchor.md")], capsys)
+        assert code == 0
+
+    def test_cli_link_in_code_block_ok(
+        self, fixtures_dir: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        code, out, _ = self._run([str(fixtures_dir / "link_in_code_block.md")], capsys)
+        assert code == 0
+
+    def test_cli_format_json_errors(
+        self, fixtures_dir: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        import json as _json
+        code, out, _ = self._run(
+            [str(fixtures_dir / "link_broken.md"), "--format", "json"], capsys
+        )
+        assert code == 1
+        data = _json.loads(out)
+        assert isinstance(data, list)
+        assert any(d["codigo"] == "LINK_QUEBRADO" for d in data)
+
+    def test_cli_format_json_empty(
+        self, fixtures_dir: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        code, out, _ = self._run(
+            [str(fixtures_dir / "valid_minimal.md"), "--format", "json"], capsys
+        )
+        assert code == 0
+        assert out.strip() == "[]"
+
+    def test_cli_warnings_only_downgrades_errors(
+        self, fixtures_dir: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        code, out, _ = self._run(
+            [str(fixtures_dir / "link_broken.md"), "--warnings-only"], capsys
+        )
+        assert code == 0  # FR-015 força exit 0
+        assert "[WARN]" in out
+        assert "[ERRO]" not in out
+        assert "LINK_QUEBRADO" in out
+
+    def test_cli_warnings_only_ok_case(
+        self, fixtures_dir: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        code, out, _ = self._run(
+            [str(fixtures_dir / "valid_minimal.md"), "--warnings-only"], capsys
+        )
+        assert code == 0
+        assert "OK" in out
+
+    def test_cli_no_color_flag(
+        self,
+        fixtures_dir: Path,
+        capsys: pytest.CaptureFixture[str],
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        monkeypatch.delenv("NO_COLOR", raising=False)
+        code, out, _ = self._run(
+            [str(fixtures_dir / "link_broken.md"), "--no-color"], capsys
+        )
+        assert code == 1
+        assert "\033[" not in out
+
+    def test_cli_no_color_env(
+        self,
+        fixtures_dir: Path,
+        capsys: pytest.CaptureFixture[str],
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        monkeypatch.setenv("NO_COLOR", "1")
+        code, out, _ = self._run(
+            [str(fixtures_dir / "link_broken.md")], capsys
+        )
+        assert code == 1
+        assert "\033[" not in out
