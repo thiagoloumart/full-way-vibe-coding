@@ -7,12 +7,12 @@ bicamada: true
 requer:
   - "Identidade"
   - "ADRs ativas (referência)"
-  - "1. Arquitetura (Camada 1)"
-  - "6. Regras de segurança estruturais (Camada 1)"
-  - "7. Limites do MVP (Camada 1)"
-  - "10. Decisões estruturais permanentes (Camada 1)"
-  - "4. Stack / Sistemas de origem (Camada 2)"
-  - "8. Estilo / Convenções (Camada 2)"
+  - "1. Arquitetura"
+  - "6. Regras de segurança estruturais"
+  - "7. Limites do MVP"
+  - "10. Decisões estruturais permanentes"
+  - "4. Stack / Sistemas de origem"
+  - "8. Estilo / Convenções"
   - "Histórico de versões"
 marcadores_camada:
   camada_1_begin: "<!-- CAMADA_1_BEGIN -->"
