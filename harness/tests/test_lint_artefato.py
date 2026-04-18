@@ -139,6 +139,81 @@ class TestValidateFrontmatterFields:
 
 
 # ---------------------------------------------------------------------------
+# T-007 — strip_code_blocks, normalize, extract_headings (F2 unit tests)
+# ---------------------------------------------------------------------------
+
+
+class TestStripCodeBlocks:
+    def test_strip_code_blocks_basic(self) -> None:
+        text = "## A\n```\n## B\n```\n## C"
+        out = la.strip_code_blocks(text)
+        # Resultado preserva 5 linhas; linhas do bloco e do delimitador vazias.
+        assert out.split("\n") == ["## A", "", "", "", "## C"]
+
+    def test_strip_code_blocks_with_language(self) -> None:
+        text = "## X\n```python\ndef foo(): pass\n```\n## Y"
+        out = la.strip_code_blocks(text)
+        assert out.split("\n") == ["## X", "", "", "", "## Y"]
+
+    def test_strip_code_blocks_no_block(self) -> None:
+        text = "## A\n\ntexto normal\n## B"
+        assert la.strip_code_blocks(text) == text
+
+    def test_strip_code_blocks_preserves_line_count(self) -> None:
+        text = "a\nb\nc\nd\ne"
+        assert len(la.strip_code_blocks(text).split("\n")) == 5
+
+
+class TestNormalize:
+    def test_normalize_whitespace(self) -> None:
+        assert la.normalize("  1.   Breakdown  ") == "1. Breakdown"
+
+    def test_normalize_travessao_longo(self) -> None:
+        assert la.normalize("A — B") == "A -- B"
+
+    def test_normalize_travessao_curto(self) -> None:
+        assert la.normalize("A – B") == "A -- B"
+
+    def test_normalize_case_sensitive(self) -> None:
+        assert la.normalize("Breakdown") != la.normalize("breakdown")
+
+    def test_normalize_mixed(self) -> None:
+        assert la.normalize("  1.  Breakdown  —  decomposição  ") == (
+            "1. Breakdown -- decomposição"
+        )
+
+
+class TestExtractHeadings:
+    def test_extract_headings_all_levels(self) -> None:
+        text = "# Título\n## Seção 2\n### Sub 3\n#### Nível 4\n##### L5\n###### L6"
+        headings = la.extract_headings(text)
+        niveis = [h[1] for h in headings]
+        assert niveis == [1, 2, 3, 4, 5, 6]
+
+    def test_extract_headings_line_numbers_1based(self) -> None:
+        text = "texto\n\n## Breakdown\n\n### Model"
+        headings = la.extract_headings(text)
+        assert headings[0] == (3, 2, "Breakdown")
+        assert headings[1] == (5, 3, "Model")
+
+    def test_extract_headings_skips_code_block_when_stripped(self) -> None:
+        text = "## A\n```\n## B\n```\n## C"
+        # Precondição: strip_code_blocks primeiro
+        headings = la.extract_headings(la.strip_code_blocks(text))
+        textos = [h[2] for h in headings]
+        assert textos == ["A", "C"]  # B não aparece
+
+    def test_extract_headings_normalizes_text(self) -> None:
+        text = "##  1.   Breakdown  —  decomposição"
+        headings = la.extract_headings(text)
+        assert headings[0][2] == "1. Breakdown -- decomposição"
+
+    def test_extract_headings_empty(self) -> None:
+        assert la.extract_headings("") == []
+        assert la.extract_headings("texto sem heading") == []
+
+
+# ---------------------------------------------------------------------------
 # T-005 — main CLI com argparse integrando F1
 # ---------------------------------------------------------------------------
 

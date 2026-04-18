@@ -13,6 +13,7 @@ Invariantes (ver constitution.md Camada 1):
 from __future__ import annotations
 
 import argparse
+import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -204,6 +205,74 @@ def validate_frontmatter_fields(
             )
 
     return diags
+
+
+# ---------------------------------------------------------------------------
+# Corpo Markdown: strip de code blocks, normalização, extração de headings (F2)
+# ---------------------------------------------------------------------------
+
+
+# Regex para captura de heading Markdown em 1 linha (níveis 1-6).
+# Grupo 1 = hashes (##, ###, ...), Grupo 2 = texto do heading.
+HEADING_RE = re.compile(r"^(#{1,6})\s+(.+?)\s*$")
+
+
+def strip_code_blocks(text: str) -> str:
+    r"""Remove conteúdo dentro de fenced code blocks (```...```) preservando
+    número de linhas (substitui por linhas vazias).
+
+    As linhas dos próprios delimitadores ``\`\`\``` são preservadas como vazias
+    para manter a contagem de linhas consistente com o original.
+
+    Aceita blocos com especificação de linguagem (```python, ```markdown, etc.).
+    Em caso de bloco mal fechado (abertura sem fechamento), o comportamento é
+    remover tudo até o fim do arquivo — documentado como [RISCO ASSUMIDO] de D-001.
+    """
+    lines = text.split("\n")
+    out: list[str] = []
+    in_block = False
+    for line in lines:
+        stripped = line.lstrip()
+        if stripped.startswith("```"):
+            out.append("")
+            in_block = not in_block
+            continue
+        out.append("" if in_block else line)
+    return "\n".join(out)
+
+
+def normalize(s: str) -> str:
+    """Normaliza string para comparação: collapse whitespace, trim, e converte
+    travessão longo/curto (—, –) em dois hífens (--).
+
+    Case-sensitive — templates usam o case literal declarado em `requer:`.
+    """
+    # Travessões unicode → ASCII double-hyphen
+    s = s.replace("\u2014", "--").replace("\u2013", "--")
+    # Collapse de whitespace (sequências → 1 espaço) + trim
+    return " ".join(s.split()).strip()
+
+
+def extract_headings(text: str) -> list[tuple[int, int, str]]:
+    """Extrai todos os headings Markdown do texto.
+
+    Retorna lista de `(linha_1based, nivel, texto_normalizado)` para cada
+    heading. Espera `text` **após** `strip_code_blocks` — headings dentro
+    de code blocks são naturalmente ignorados porque as linhas foram
+    substituídas por vazio.
+
+    Extrai **todos** os níveis (1-6); filtragem por nível fica para a
+    validação de seções (que aceita 2 e 3 como válidos e reporta 4+ como
+    `SECAO_OBRIGATORIA_NIVEL_INVALIDO`).
+    """
+    headings: list[tuple[int, int, str]] = []
+    for idx, line in enumerate(text.split("\n"), start=1):
+        m = HEADING_RE.match(line)
+        if m:
+            nivel = len(m.group(1))
+            texto_norm = normalize(m.group(2))
+            headings.append((idx, nivel, texto_norm))
+    return headings
 
 
 # ---------------------------------------------------------------------------
