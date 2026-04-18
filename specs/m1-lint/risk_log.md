@@ -86,14 +86,19 @@ Registro vivo de riscos técnicos, drifts, inferências e premissas em aberto du
 - **Critério de invalidação:** algum caso de segurança real justificar; por enquanto é corretude sem preocupação de segurança.
 
 ### R-007 · `lint_artefato.py` passar de 350 linhas
-- **Status:** 🟠 ativo (monitorado)
-- **Severidade:** 🟢 baixa
+- **Status:** 🔴 materializou em 2026-04-18 (pós-F3: 369 LoC efetivas vs 350 threshold)
+- **Severidade:** 🟢 baixa — 19 linhas acima do limite não justifica refactor emergencial
 - **Origem:** Analyze problema #2 + plan.md §6
 - **Descrição:** Decisão "1 arquivo único" com critério quantitativo "350 LoC → ADR-004 + refactor em módulos `harness/scripts/lint/{parser,validator,report,cli}.py`".
-- **Estado atual (após F2):** ~280 linhas de código (excluindo docstrings e blank lines por inspeção visual, não via `cloc`). Margem segura.
-- **Mitigação:** Rodar `cloc` no fim de F3. Se passar, abrir ADR-004 e refactorar antes do merge.
-- **Critério de invalidação:** ultrapassar 350 LoC.
-- **Watcher:** fim de F3, obrigatoriamente.
+- **Medição pós-F3 (via AST walker + wc):** 665 linhas totais, 521 não-vazias, 152 de docstring top-level, **369 LoC efetivas**.
+- **Decisão tomada (2026-04-18):** POSTERGAR refactor para início de W1 track B ou M2. Justificativa:
+  1. 369 vs 350 = 5% overshoot — não é dramático.
+  2. Refatorar no meio de W1 track A (antes de T-013 a T-016) adiciona risco de regressão sem valor operacional imediato.
+  3. 77 testes passando + cobertura dos 18 FRs dão confiança no monolito atual.
+  4. Fragmentação correta (`parser.py`, `validator.py`, `report.py`, `cli.py`) merece planejamento separado — não refactor ad-hoc.
+- **Ação:** abrir ADR-004 como **Proposta** registrando o overshoot controlado; refactor concreto fica como T-NNN em W1 track B ou como M2.1.
+- **Critério de invalidação da postergação:** se o arquivo passar de 500 LoC efetivas durante implementação de outras features, refactor vira prioridade imediata.
+- **Watcher:** reexaminar em retrospective W1 e antes de qualquer feature nova que toque `lint_artefato.py`.
 
 ### R-008 · Dogfood pode expor novo padrão inesperado em F3
 - **Status:** 🔴 materializou → 🟢 mitigado em commit a seguir (2026-04-18)
