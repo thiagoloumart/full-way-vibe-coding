@@ -275,13 +275,90 @@ def extract_headings(text: str) -> list[tuple[int, int, str]]:
     return headings
 
 
+def _heading_matches_requer(heading_texto_norm: str, requer_norm: str) -> bool:
+    """Prefix match controlado entre heading e item de `requer:`.
+
+    Aceita: (a) match exato, ou (b) heading começa com `requer_norm + ' '`.
+    O espaço separador evita falso positivo (`"A"` não bate `"Aa"`), mas
+    aceita o caso comum `requer: "Decisão"` bater `## Decisão — registrada`
+    (após normalização vira `"Decisão -- registrada"`, o `.startswith("Decisão ")`
+    retorna True).
+    """
+    if heading_texto_norm == requer_norm:
+        return True
+    return heading_texto_norm.startswith(requer_norm + " ")
+
+
+def validate_required_sections(
+    requer: list[Any],
+    headings: list[tuple[int, int, str]],
+    *,
+    arquivo: str,
+    linha_fm: int,
+) -> list[Diagnostic]:
+    """Para cada item em `requer:`, verifica se existe heading nível 2-3 que bate.
+
+    - Match válido (nível 2 ou 3) → sem diagnóstico.
+    - Match apenas em nível ≥4 → `SECAO_OBRIGATORIA_NIVEL_INVALIDO` apontando linha
+      do heading encontrado.
+    - Nenhum match → `SECAO_OBRIGATORIA_AUSENTE` apontando linha do front-matter.
+
+    Itens de `requer:` que não sejam strings são ignorados silenciosamente
+    (já tratado como CAMPO_TIPO_INVALIDO no nível do container).
+    """
+    diags: list[Diagnostic] = []
+    for item in requer:
+        if not isinstance(item, str):
+            continue
+        req_norm = normalize(item)
+
+        valid_match: tuple[int, int, str] | None = None
+        invalid_level_match: tuple[int, int, str] | None = None
+        for linha, nivel, texto in headings:
+            if _heading_matches_requer(texto, req_norm):
+                if nivel in (2, 3):
+                    valid_match = (linha, nivel, texto)
+                    break
+                if invalid_level_match is None:
+                    invalid_level_match = (linha, nivel, texto)
+
+        if valid_match is not None:
+            continue
+
+        if invalid_level_match is not None:
+            linha_inv, nivel_inv, _ = invalid_level_match
+            diags.append(
+                Diagnostic(
+                    arquivo=arquivo,
+                    linha=linha_inv,
+                    nivel="ERRO",
+                    codigo="SECAO_OBRIGATORIA_NIVEL_INVALIDO",
+                    mensagem=(
+                        f"seção obrigatória `{item}` encontrada em nível "
+                        f"{nivel_inv} (esperado 2 ou 3)"
+                    ),
+                )
+            )
+        else:
+            diags.append(
+                Diagnostic(
+                    arquivo=arquivo,
+                    linha=linha_fm,
+                    nivel="ERRO",
+                    codigo="SECAO_OBRIGATORIA_AUSENTE",
+                    mensagem=f"seção obrigatória não encontrada no corpo: `{item}`",
+                )
+            )
+    return diags
+
+
 # ---------------------------------------------------------------------------
 # Orquestração (F1): lint de um artefato (sem validação de seções nem links ainda)
 # ---------------------------------------------------------------------------
 
 
 def lint_artefato(path: Path) -> list[Diagnostic]:
-    """Executa o lint F1 (front-matter) sobre um artefato.
+    """Executa o lint F1 (front-matter) + F2 (seções) sobre um artefato.
 
     Raises:
         ArquivoNaoEncontrado, ArquivoNaoMarkdown: erros de IO (exit 2 no caller).
@@ -298,7 +375,18 @@ def lint_artefato(path: Path) -> list[Diagnostic]:
         return [Diagnostic(arquivo=arquivo, linha=1, nivel="ERRO",
                            codigo="YAML_INVALIDO", mensagem=str(exc))]
 
-    return validate_frontmatter_fields(fm, arquivo=arquivo, linha_fm=linha_fm)
+    diags = validate_frontmatter_fields(fm, arquivo=arquivo, linha_fm=linha_fm)
+
+    # F2: validação de seções `requer:` — só faz sentido se `requer` é lista válida.
+    requer = fm.get("requer")
+    if isinstance(requer, list):
+        body_stripped = strip_code_blocks(text)
+        headings = extract_headings(body_stripped)
+        diags += validate_required_sections(
+            requer, headings, arquivo=arquivo, linha_fm=linha_fm
+        )
+
+    return diags
 
 
 # ---------------------------------------------------------------------------

@@ -284,3 +284,54 @@ class TestCLI:
         code, _, err = self._run(path, capsys)
         assert code == 2
         assert "ARQUIVO_NAO_MARKDOWN" in err
+
+
+# ---------------------------------------------------------------------------
+# T-008 — CLI integração F2 (validação de seções requer:)
+# ---------------------------------------------------------------------------
+
+
+class TestCLIF2Sections:
+    def _run(self, fixture: Path, capsys: pytest.CaptureFixture[str]) -> tuple[int, str, str]:
+        code = la.main([str(fixture)])
+        captured = capsys.readouterr()
+        return code, captured.out, captured.err
+
+    def test_cli_sections_ok(
+        self, fixtures_dir: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        code, out, _ = self._run(fixtures_dir / "sections_ok.md", capsys)
+        assert code == 0
+        assert "OK" in out
+
+    def test_cli_section_missing(
+        self, fixtures_dir: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        code, out, _ = self._run(fixtures_dir / "section_missing.md", capsys)
+        assert code == 1
+        assert "SECAO_OBRIGATORIA_AUSENTE" in out
+        assert "2. Model" in out
+
+    def test_cli_section_wrong_level(
+        self, fixtures_dir: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        code, out, _ = self._run(fixtures_dir / "section_wrong_level.md", capsys)
+        assert code == 1
+        assert "SECAO_OBRIGATORIA_NIVEL_INVALIDO" in out
+        assert "nível 4" in out
+
+    def test_cli_section_in_code_block(
+        self, fixtures_dir: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        """Heading dentro de fenced code block não conta como obrigatória (FR-005)."""
+        code, out, _ = self._run(fixtures_dir / "section_in_code_block.md", capsys)
+        assert code == 1
+        assert "SECAO_OBRIGATORIA_AUSENTE" in out
+
+    def test_cli_section_extra_whitespace(
+        self, fixtures_dir: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        """Whitespace extra no heading é normalizado antes da comparação (FR-004)."""
+        code, out, _ = self._run(fixtures_dir / "section_extra_whitespace.md", capsys)
+        assert code == 0
+        assert "OK" in out
