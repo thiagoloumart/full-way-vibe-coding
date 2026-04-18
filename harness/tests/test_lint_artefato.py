@@ -214,6 +214,105 @@ class TestExtractHeadings:
 
 
 # ---------------------------------------------------------------------------
+# T-010 — extract_links, validate_links (F3 unit tests)
+# ---------------------------------------------------------------------------
+
+
+class TestExtractLinks:
+    def test_extract_links_relative(self, tmp_path: Path) -> None:
+        source = tmp_path / "doc.md"
+        source.touch()
+        text = "Veja [x](./foo.md) e [y](../bar.md)."
+        links = la.extract_links(text, source)
+        assert len(links) == 2
+        assert links[0][1] == "./foo.md"
+        assert links[1][1] == "../bar.md"
+
+    def test_extract_links_ignores_external(self, tmp_path: Path) -> None:
+        source = tmp_path / "doc.md"
+        source.touch()
+        text = (
+            "[https](https://example.com) [http](http://example.com) "
+            "[mail](mailto:a@b.com) [ftp](ftp://host/x)"
+        )
+        assert la.extract_links(text, source) == []
+
+    def test_extract_links_ignores_images(self, tmp_path: Path) -> None:
+        source = tmp_path / "doc.md"
+        source.touch()
+        text = "![alt](./image.png) com link normal [doc](./doc.md)"
+        links = la.extract_links(text, source)
+        assert len(links) == 1
+        assert links[0][1] == "./doc.md"
+
+    def test_extract_links_strips_anchor_on_target(self, tmp_path: Path) -> None:
+        source = tmp_path / "doc.md"
+        source.touch()
+        target = tmp_path / "outro.md"
+        target.touch()
+        text = "[sec](./outro.md#minha-secao)"
+        links = la.extract_links(text, source)
+        assert len(links) == 1
+        assert links[0][1] == "./outro.md#minha-secao"
+        # resolvido aponta para o arquivo, sem a âncora
+        assert links[0][2] == target
+
+    def test_extract_links_percent_encoded(self, tmp_path: Path) -> None:
+        source = tmp_path / "doc.md"
+        source.touch()
+        target = tmp_path / "arquivo com espaço.md"
+        target.touch()
+        text = "[x](./arquivo%20com%20espa%C3%A7o.md)"
+        links = la.extract_links(text, source)
+        assert len(links) == 1
+        assert links[0][2] == target
+
+    def test_extract_links_ignores_fragment_only(self, tmp_path: Path) -> None:
+        source = tmp_path / "doc.md"
+        source.touch()
+        text = "[topo](#inicio)"
+        assert la.extract_links(text, source) == []
+
+    def test_extract_links_line_numbers_1based(self, tmp_path: Path) -> None:
+        source = tmp_path / "doc.md"
+        source.touch()
+        text = "linha 1\n\nlinha 3 com [x](./y.md)\n\nlinha 5 [z](./w.md)"
+        links = la.extract_links(text, source)
+        assert links[0][0] == 3
+        assert links[1][0] == 5
+
+
+class TestValidateLinks:
+    def test_validate_links_all_exist(self, tmp_path: Path) -> None:
+        existing = tmp_path / "existe.md"
+        existing.touch()
+        links = [(1, "./existe.md", existing)]
+        assert la.validate_links(links, arquivo=str(tmp_path / "src.md")) == []
+
+    def test_validate_links_broken(self, tmp_path: Path) -> None:
+        inexistente = tmp_path / "inexistente.md"
+        links = [(7, "./inexistente.md", inexistente)]
+        diags = la.validate_links(links, arquivo="src.md")
+        assert len(diags) == 1
+        d = diags[0]
+        assert d.codigo == "LINK_QUEBRADO"
+        assert d.linha == 7
+        assert "./inexistente.md" in d.mensagem
+
+    def test_validate_links_mixed(self, tmp_path: Path) -> None:
+        exists = tmp_path / "a.md"
+        exists.touch()
+        broken = tmp_path / "b.md"
+        links = [
+            (1, "./a.md", exists),
+            (2, "./b.md", broken),
+        ]
+        diags = la.validate_links(links, arquivo="src.md")
+        assert len(diags) == 1
+        assert diags[0].linha == 2
+
+
+# ---------------------------------------------------------------------------
 # T-005 — main CLI com argparse integrando F1
 # ---------------------------------------------------------------------------
 

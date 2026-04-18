@@ -18,6 +18,7 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Literal
+from urllib.parse import unquote
 
 import yaml
 
@@ -275,6 +276,82 @@ def extract_headings(text: str) -> list[tuple[int, int, str]]:
     return headings
 
 
+# Regex para extração de links Markdown inline: `[texto](target)`.
+# Captura `target` completo; split de âncora (#) é feito depois.
+# Evita matchar dentro de `![...](...)` (imagens) via lookbehind negativo.
+LINK_RE = re.compile(r"(?<!\!)\[([^\]]+)\]\(([^)\s]+)\)")
+
+# Prefixos que indicam link externo — ignorados pelo lint (FR-009).
+_EXTERNAL_PREFIXES = ("http://", "https://", "mailto:", "ftp://", "ftps://")
+
+
+def extract_links(
+    text: str, source_path: Path
+) -> list[tuple[int, str, Path]]:
+    """Extrai links Markdown relativos internos do texto.
+
+    Retorna lista de `(linha_1based, target_original, target_resolvido)`.
+    Espera `text` **após** `strip_code_blocks` — links em fenced blocks são
+    naturalmente ignorados (FR-010).
+
+    Ignora:
+    - Links externos (http/https/mailto/ftp) — FR-009.
+    - Links para imagens `![...](...)` — via lookbehind negativo na regex.
+    - Fragmentos puros (`#secao`) e links vazios.
+
+    Para links com âncora (`arquivo.md#secao`), o target resolvido ignora a
+    âncora — só o arquivo é validado (FR-008). Percent-encoding no caminho
+    é decodificado via `urllib.parse.unquote` antes de resolver (R-005).
+
+    `source_path` é usado para resolver caminhos relativos via `source_path.parent`.
+    """
+    results: list[tuple[int, str, Path]] = []
+    base = source_path.parent
+
+    for idx, line in enumerate(text.split("\n"), start=1):
+        for match in LINK_RE.finditer(line):
+            target = match.group(2).strip()
+            if not target or target.startswith("#"):
+                continue
+            if target.lower().startswith(_EXTERNAL_PREFIXES):
+                continue
+            # Separar âncora; só o arquivo é validado
+            file_part = target.split("#", 1)[0]
+            if not file_part:
+                continue
+            # Decodifica percent-encoding no path (ex.: %20 → espaço)
+            file_part_decoded = unquote(file_part)
+            resolved = (base / file_part_decoded).resolve()
+            results.append((idx, target, resolved))
+
+    return results
+
+
+def validate_links(
+    links: list[tuple[int, str, Path]],
+    *,
+    arquivo: str,
+) -> list[Diagnostic]:
+    """Valida que cada link relativo interno aponta para arquivo existente.
+
+    Retorna lista de Diagnostic com código `LINK_QUEBRADO` para cada link
+    cujo target resolvido não existe no filesystem.
+    """
+    diags: list[Diagnostic] = []
+    for linha, target, resolved in links:
+        if not resolved.exists():
+            diags.append(
+                Diagnostic(
+                    arquivo=arquivo,
+                    linha=linha,
+                    nivel="ERRO",
+                    codigo="LINK_QUEBRADO",
+                    mensagem=f"link aponta para arquivo inexistente: `{target}`",
+                )
+            )
+    return diags
+
+
 def _heading_matches_requer(heading_texto_norm: str, requer_norm: str) -> bool:
     """Prefix match controlado entre heading e item de `requer:`.
 
@@ -377,14 +454,20 @@ def lint_artefato(path: Path) -> list[Diagnostic]:
 
     diags = validate_frontmatter_fields(fm, arquivo=arquivo, linha_fm=linha_fm)
 
+    # F2 e F3 compartilham o corpo pós-strip de code blocks
+    body_stripped = strip_code_blocks(text)
+
     # F2: validação de seções `requer:` — só faz sentido se `requer` é lista válida.
     requer = fm.get("requer")
     if isinstance(requer, list):
-        body_stripped = strip_code_blocks(text)
         headings = extract_headings(body_stripped)
         diags += validate_required_sections(
             requer, headings, arquivo=arquivo, linha_fm=linha_fm
         )
+
+    # F3: validação de links relativos internos
+    links = extract_links(body_stripped, path)
+    diags += validate_links(links, arquivo=arquivo)
 
     return diags
 
