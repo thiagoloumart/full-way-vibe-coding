@@ -14,8 +14,8 @@ as 15 fases (0 → 12) do manual operacional.
 | 2 — Spec | `spec.md` | 🟢 Finalizada (2026-04-18) · atualizada pós-Clarify (2026-04-18) | `w1b/f2-spec` + `w1b/f3-clarify` |
 | 3 — Clarify | `clarify.md` | 🟢 Finalizada (2026-04-18) | `w1b/f3-clarify` |
 | 3.5 — Constituição | `constitution.md` v1.0 | 🟢 Finalizada (2026-04-20) | `w1b/f3.5-constitution` |
-| 4 — Plan | `plan.md` + `adr_local_001_provedor_whatsapp.md` | 🟡 Draft (2026-04-20) | `w1b/f4-plan` |
-| 5 — Tasks | `tasks.md` | ⏳ | — |
+| 4 — Plan | `plan.md` + `adr_local_001_provedor_whatsapp.md` | 🟢 Finalizada (2026-04-20) | `w1b/f4-plan` |
+| 5 — Tasks | `tasks.md` (59 tasks T-001..T-059) | 🟡 Draft (2026-04-20) | `w1b/f5-tasks` |
 | 6 — Analyze | `analyze.md` | ⏳ | — |
 | 7 — Implement | código real | ⏳ | — |
 | 8 — Test | suíte | ⏳ | — |
