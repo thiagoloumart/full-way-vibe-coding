@@ -1,0 +1,18 @@
+parameters:
+    level: 5
+    paths:
+        - app
+        - database
+        - routes
+
+    excludePaths:
+        - vendor/*
+        - storage/*
+        - bootstrap/cache/*
+
+    ignoreErrors:
+        # Eloquent magic properties já cobertas por IDE helper / docblocks nos models.
+        - '#Access to an undefined property App\\Models\\#'
+
+    # Caminhos típicos — ajustar quando CI real rodar.
+    reportUnmatchedIgnoredErrors: false
