@@ -1,0 +1,127 @@
+name: CI (canonical-001)
+
+# CI workflow do canônico 001 — demonstrativo. Este repositório não roda
+# este workflow; a skill full-way-vibe-coding tem CI próprio em /harness.
+# Este arquivo existe como exemplo do que F10 T-056 produziria.
+#
+# Origem: plan §8 Observabilidade · T-056.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    name: Pint (formato)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP 8.3
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: composer:v2
+          coverage: none
+
+      - name: Composer install
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Pint
+        run: ./vendor/bin/pint --test
+
+  static-analysis:
+    name: PHPStan (análise estática)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP 8.3
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: composer:v2
+          coverage: none
+
+      - name: Composer install
+        run: composer install --no-interaction --prefer-dist
+
+      - name: PHPStan
+        run: ./vendor/bin/phpstan analyse --memory-limit=512M
+
+  tests:
+    name: Pest + cobertura
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: confirmacao_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: confirmacao_test
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      REDIS_HOST: 127.0.0.1
+      REDIS_PORT: 6379
+      CACHE_STORE: redis
+      QUEUE_CONNECTION: redis
+      WHATSAPP_DRIVER: noop
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP 8.3 + xdebug para coverage
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: composer:v2
+          coverage: xdebug
+
+      - name: Composer install
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Copy .env
+        run: cp .env.example .env
+
+      - name: Generate app key
+        run: php artisan key:generate
+
+      - name: Migrate
+        run: php artisan migrate --force
+
+      - name: Pest
+        run: ./vendor/bin/pest --coverage --min=60
+        # Threshold inicial 60% (dívida 7.11); meta 70% ao fim de W2.
+
+  audit:
+    name: composer audit (dependências)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with: { php-version: '8.3', tools: 'composer:v2' }
+      - run: composer audit --no-dev
