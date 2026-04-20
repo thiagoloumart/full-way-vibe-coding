@@ -10,9 +10,9 @@ requer:
 
 # Tasks — `001-confirmacao-consultas` (Canônico D1)
 
-**Referência:** `plan.md` v1 · `spec.md` v2 · `constitution.md` v1.1 (após merge do ADR-L-001)
-**Data:** 2026-04-20
-**Status:** Draft (validação humana via merge do PR `w1b/f5-tasks`)
+**Referência:** `plan.md` v1 · `spec.md` v2 · `constitution.md` v1.1 (após merge do ADR-L-001) · `analyze.md` (Fase 6)
+**Data:** 2026-04-20 (v1 · 59 tasks) · 2026-04-20 (v2 pós-Analyze · 63 tasks com ajustes P-01 a P-05)
+**Status:** Pós-Analyze (v2)
 **Autor:** Thiago Loumart (modo Arquiteto)
 
 Implementação **por fase** (Manual §12). Cada task = unidade executável pequena com dependências explícitas e DoD concreto. Agrupadas por F1..F10 do `plan.md §3`.
@@ -55,15 +55,15 @@ Implementação **por fase** (Manual §12). Cada task = unidade executável pequ
 - **Testes exigidos:** sucesso — login com credencial válida redireciona; erro — login inválido não revela se é email errado ou senha errada; edge — papel `paciente` no seed é rejeitado.
 - **Risco:** 🟢.
 
-### T-003 — Migração + model `Paciente` (PII + anonimizavel)
+### T-003 — Migração + model `Paciente` (PII + anonimizavel + telefone nullable) *(editada pós-Analyze — P-03)*
 
 - **Estado:** ⬜
 - **Depende de:** T-001
-- **Descrição:** cria tabela `pacientes` com campos PII (`nome`, `telefone_whatsapp`, `email nullable`) + `anonimizado_em nullable` + índice único `(clinica_id, telefone_whatsapp)` (parcial: `WHERE anonimizado_em IS NULL` para permitir múltiplos anonimizados).
-- **Arquivos:** `database/migrations/2026_04_21_000003_create_pacientes_table.php`, `app/Models/Paciente.php`, `app/Domain/Cadastro/Valores/TelefoneWhatsapp.php` (VO com validação via `brick/phonenumber`).
-- **Contrato afetado:** `Paciente` (model) + VO TelefoneWhatsapp.
-- **Testes exigidos:** sucesso — criar paciente com telefone BR válido; erro — telefone inválido rejeita; edge — 2 pacientes anonimizados com mesmo telefone antigo não colidem no unique parcial.
-- **Risco:** 🟢.
+- **Descrição:** cria tabela `pacientes` com campos PII (`nome`, `telefone_whatsapp` **nullable**, `email nullable`) + `anonimizado_em nullable` + índice único parcial `(clinica_id, telefone_whatsapp)` com `WHERE anonimizado_em IS NULL AND telefone_whatsapp IS NOT NULL`. Regra de negócio: paciente **sem WhatsApp** (`telefone_whatsapp IS NULL`) é válido — consultas desse paciente são criadas com evento inicial `sem-canal` além do `criada`, sinalizando imediatamente ao atendente que não haverá lembrete automático (fallback humano integral, D-E-02 + edge case spec).
+- **Arquivos:** `database/migrations/2026_04_21_000003_create_pacientes_table.php`, `app/Models/Paciente.php`, `app/Domain/Cadastro/Valores/TelefoneWhatsapp.php` (VO com validação via `brick/phonenumber`). Enum `TipoEvento` (T-011) inclui `sem_canal`.
+- **Contrato afetado:** `Paciente` (model com `telefone_whatsapp` nullable) + VO TelefoneWhatsapp.
+- **Testes exigidos:** sucesso — criar paciente com telefone BR válido; sucesso — criar paciente **sem telefone** (null); erro — telefone com formato inválido rejeita; edge — 2 pacientes anonimizados com mesmo telefone antigo não colidem no unique parcial; edge — criar consulta para paciente com `telefone_whatsapp = null` → evento `sem-canal` registrado + painel mostra alerta.
+- **Risco:** 🟡 (aumentado de 🟢 após ajuste — introduz estado `sem-canal` que requer listener em F5 para **não** agendar lembrete).
 
 ### T-004 — Migração + model `Medico`
 
@@ -454,14 +454,14 @@ Implementação **por fase** (Manual §12). Cada task = unidade executável pequ
 
 ## Fase F8 — Config + presença + correção
 
-### T-043 — Middleware `ExigeIsAdmin`
+### T-043 — Middleware `ExigeIsAdmin` + Policies Laravel *(ampliada pós-Analyze — P-05)*
 
 - **Estado:** ⬜
 - **Depende de:** T-002
-- **Descrição:** middleware que rejeita com 403 se `user->is_admin = false`.
-- **Arquivos:** `app/Http/Middleware/ExigeIsAdmin.php`, registro em `bootstrap/app.php`.
-- **Testes exigidos:** feature — atendente sem admin → 403; com admin → passa.
-- **Risco:** 🟢.
+- **Descrição:** middleware que rejeita com 403 se `user->is_admin = false` **+ criação de Policies Laravel** para escopo fino: `ConsultaPolicy`, `PacientePolicy`, `MedicoPolicy`. Policies aplicam (a) isolamento por `clinica_id` (D-003) e (b) escopo "médico vê só própria agenda" (C-002).
+- **Arquivos:** `app/Http/Middleware/ExigeIsAdmin.php`, `app/Policies/{ConsultaPolicy,PacientePolicy,MedicoPolicy}.php`, registro em `bootstrap/app.php` + `AuthServiceProvider`.
+- **Testes exigidos:** feature — atendente sem admin em rota de config → 403; com admin → passa. Policy: médico A tenta ver consulta do médico B (mesma clínica) → 403; médico A vê própria consulta → 200; atendente tenta ver dados de outra clínica (simulado) → 403.
+- **Risco:** 🟡 (aumentado de 🟢 após ajuste — Policies é camada adicional de autorização que precisa teste rigoroso).
 
 ### T-044 — Livewire `ClinicaConfigForm`
 
@@ -618,6 +618,49 @@ Implementação **por fase** (Manual §12). Cada task = unidade executável pequ
 
 ---
 
+## Ajustes pós-Analyze (Fase 6) — tasks adicionadas em 2026-04-20
+
+### T-060 — Scheduler `DetectarSemRespostaJob` *(F7; nova pós-Analyze — P-01)*
+
+- **Estado:** ⬜
+- **Depende de:** T-015, T-017 (evento + listener de status_cache)
+- **Descrição:** scheduler Laravel a cada 15 min; busca `consultas` com `status_cache = 'lembrete-enviado'` e `(datahora_agendada - interval '1 hour' * janela_silencio_horas_usada) < NOW()`; para cada, registra evento `status_sem_resposta` com `ator_tipo = sistema-automacao`. Listener T-017 atualiza `status_cache` → painel T-038 destaca imediatamente. Materializa D-E-05.
+- **Arquivos:** `app/Domain/Confirmacao/Jobs/DetectarSemRespostaJob.php`, registro em `app/Console/Kernel.php` (`->everyFifteenMinutes()`).
+- **Contrato afetado:** job agendado.
+- **Testes exigidos:** feature — setup com consulta `lembrete-enviado` cujo horário da consulta - silêncio já passou → rodar job manualmente → status_cache vira `sem-resposta` + evento `status_sem_resposta` registrado; consulta ainda dentro da janela de silêncio → job não altera; consulta que já respondeu → job não altera.
+- **Risco:** 🟡.
+
+### T-061 — Link seguro assinado para paciente *(F7; nova pós-Analyze — P-02)*
+
+- **Estado:** ⬜
+- **Depende de:** T-021 (driver Meta; precisa incluir URL no payload do template)
+- **Descrição:** rota Laravel assinada temporalmente (`URL::temporarySignedRoute`) com TTL = janela_lembrete + buffer; Livewire somente-leitura `ConsultaPublica` mostra dados da consulta (clínica, médico, data/hora, endereço) sem exigir login. Materializa FR-034.
+- **Arquivos:** `app/Http/Livewire/Confirmacao/ConsultaPublica.php` + view, `routes/web.php` (rota `/consulta/publico/{consulta}` com middleware `signed`), ajuste em `DispararLembreteJob` (T-032) para gerar URL e incluir como parâmetro do template.
+- **Contrato afetado:** rota pública assinada.
+- **Testes exigidos:** feature — link assinado válido → renderiza detalhes; link expirado → 403; link adulterado → 403; dados de consulta de outra clínica NÃO acessíveis mesmo com token (defense against token leak).
+- **Risco:** 🟡.
+
+### T-062 — Command `consultas:reconciliar-status-cache` *(F10; nova pós-Analyze — P-04)*
+
+- **Estado:** ⬜
+- **Depende de:** T-016, T-017
+- **Descrição:** comando Artisan que itera todas as consultas da clínica (pode aceitar `--clinica=N` opcional); recalcula `DerivarStatus` puro; compara com `status_cache` persistido; atualiza se divergente + loga divergência. Scheduler semanal (domingos 03h — fora do horário operacional) + disponível para invocação manual.
+- **Arquivos:** `app/Console/Commands/ReconciliarStatusCache.php`, registro em `app/Console/Kernel.php` (`->weekly()`).
+- **Contrato afetado:** comando Artisan.
+- **Testes exigidos:** feature — sabotar `status_cache` artificialmente (setar para valor errado) → rodar comando → cache reconciliado; dry-run opcional via `--dry-run` só imprime diferenças; log estruturado inclui `consulta_id`, `status_antigo`, `status_novo`.
+- **Risco:** 🟢.
+
+### T-063 — Testes de Policy dedicados *(F8; nova pós-Analyze — P-05 complemento)*
+
+- **Estado:** ⬜
+- **Depende de:** T-043 (Policies criadas)
+- **Descrição:** suite de testes específica que exercita cada Policy criada em T-043 contra cenários adversariais (médico A tentando operar como médico B; atendente tentando acessar consulta de outra clínica simulada; paciente — sem login — NUNCA deve passar qualquer Policy).
+- **Arquivos:** `tests/Feature/Policies/{ConsultaPolicyTest,PacientePolicyTest,MedicoPolicyTest}.php`.
+- **Testes exigidos:** os próprios — matriz de autorização 4×N ações cobrindo todos os cenários de C-002.
+- **Risco:** 🟡.
+
+---
+
 ## Matriz de rastreabilidade (FR ↔ Task)
 
 | FR | Task(s) | Observação |
@@ -642,7 +685,7 @@ Implementação **por fase** (Manual §12). Cada task = unidade executável pequ
 | FR-018 (campos auditoria) | T-011, T-012, T-015 | |
 | FR-019 (consultar histórico) | T-039 | |
 | FR-020 (painel do dia) | T-038 | |
-| FR-021 (destaque sem-resposta) | T-038 | |
+| FR-021 (destaque sem-resposta) | T-038, **T-060** | Scheduler sem-resposta (P-01 pós-Analyze) |
 | FR-022 (filtros por status) | T-038 | |
 | FR-023 (confirmar em nome) | T-040, T-041 | |
 | FR-024 (cancelar/reagendar manual) | T-040, T-041 | |
@@ -655,7 +698,7 @@ Implementação **por fase** (Manual §12). Cada task = unidade executável pequ
 | FR-031 (matriz RBAC C-002) | T-043, T-044 | |
 | FR-032 (isolamento por clínica) | T-001, todas | `clinica_id` em todas as tabelas |
 | FR-033 (anonimização LGPD) | T-048, T-050 | Transacional + confirmação forte |
-| FR-034 (não expor dados não autenticados) | T-002, T-025 | Middleware |
+| FR-034 (não expor dados não autenticados) | T-002, T-025, **T-061** | Middleware + link seguro assinado (P-02 pós-Analyze) |
 
 **NFRs:**
 | NFR | Task(s) |
@@ -689,12 +732,12 @@ Implementação **por fase** (Manual §12). Cada task = unidade executável pequ
 
 ---
 
-## Sumário numérico
+## Sumário numérico (v2 pós-Analyze)
 
-- **Total de tasks:** 59 (T-001 a T-059).
-- **Distribuição por fase:** F1=6 · F2=4 · F3=8 · F4=8 · F5=7 · F6=4 · F7=5 · F8=5 · F9=5 · F10=7.
-- **Distribuição por risco:** 🟢 22 · 🟡 29 · 🔴 6 (T-013 trigger PG, T-021 Meta driver, T-032 job pipeline, T-048 anonimização, T-052 race protection, dois outros em infra externa).
-- **Estimativa grossa** (não computada aqui — responsabilidade humana em execução): ordem de grandeza de 40–60h de trabalho focado solo-dev para completar as 59 tasks.
+- **Total de tasks:** **63** (T-001 a T-063; 59 originais + 4 adicionadas pós-Analyze P-01/P-02/P-04/P-05; 2 editadas em escopo: T-003 e T-043).
+- **Distribuição por fase:** F1=6 · F2=4 · F3=8 · F4=8 · F5=7 · F6=4 · F7=**7** (+ T-060, T-061) · F8=**6** (+ T-063) · F9=5 · F10=**8** (+ T-062).
+- **Distribuição por risco:** 🟢 20 · 🟡 35 · 🔴 8 (T-003 subiu para 🟡 após ampliação; T-043 idem).
+- **Estimativa grossa**: ordem de grandeza de **45–65h** de trabalho focado solo-dev (aumento marginal sobre v1 por causa das 4 tasks novas).
 
 ---
 
