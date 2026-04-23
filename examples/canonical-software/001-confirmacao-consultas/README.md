@@ -21,8 +21,8 @@ as 15 fases (0 → 12) do manual operacional.
 | 8 — Test | `test_plan.md` (documental — canônico não executa) | 🟢 Finalizada (2026-04-23) | `w1b/f8-test` |
 | 9 — Quickstart | `quickstart.md` (documental — canônico não executa) | 🟢 Finalizada (2026-04-23) | `w1b/f9-quickstart` |
 | 10 — Review | `.review/canonical-001-f{N}.md` (f0..f9) | 🟢 Finalizada (2026-04-23) | — (self-review, um por PR) |
-| 11 — Merge | — | ⏳ | — |
-| 12 — Retrospective | `retrospective.md` + `risk_log.md` | ⏳ | — |
+| 11 — Merge | — | 🟢 Finalizada (2026-04-23) | — (F8 #12, F9 #13, F10 #14 mergeados) |
+| 12 — Retrospective | `retrospective.md` + `risk_log.md` | 🟢 Finalizada (2026-04-23) | `w1b/f12-retrospective` |
 
 Atualizar esta tabela ao fim de cada PR mergeado.
 
