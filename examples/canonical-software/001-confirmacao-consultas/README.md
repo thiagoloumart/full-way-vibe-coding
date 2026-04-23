@@ -19,7 +19,7 @@ as 15 fases (0 → 12) do manual operacional.
 | 6 — Analyze | `analyze.md` + ajustes P-01..P-05 em `tasks.md` | 🟢 Finalizada (2026-04-20) | `w1b/f6-analyze` |
 | 7 — Implement | `codigo/` (estratégia C2: ~20 arquivos completos + ~35 stubs) + `implement_notes.md` | 🟢 Finalizada (2026-04-20) | `w1b/f7-implement` |
 | 8 — Test | `test_plan.md` (documental — canônico não executa) | 🟡 Draft (2026-04-20) | `w1b/f8-test` |
-| 9 — Quickstart | `quickstart.md` | ⏳ | — |
+| 9 — Quickstart | `quickstart.md` (documental — canônico não executa) | 🟡 Draft (2026-04-23) | `w1b/f9-quickstart` |
 | 10 — Review | `.review/canonical-001-*.md` | ⏳ (um por PR) | — |
 | 11 — Merge | — | ⏳ | — |
 | 12 — Retrospective | `retrospective.md` + `risk_log.md` | ⏳ | — |
